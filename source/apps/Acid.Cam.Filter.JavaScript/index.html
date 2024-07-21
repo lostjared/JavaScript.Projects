@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acid Cam Image Filter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #controls {
+            margin: 20px;
+        }
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <h1>Acid Cam Image Filter</h1>
+    <div id="controls">
+        <button id="loadImage">Load Image</button>
+        <button id="saveImage">Save Image</button>
+        <button id="setImage">Set Image</button>
+        <label for="filterSelect">Filter:</label>
+        <select id="filterSelect">
+            <option value="selfAlphaBlend">Self Alpha Blend</option>
+            <option value="diamondPattern">Diamond Pattern</option>
+            <option value="colorXor">Color XOR</option>
+            <option value="block">Block</option>
+            <option value="reverseXOR">Reverse XOR</option>
+            <option value="combinePixels">Combine Pixels</option>
+            <option value="side2Side">Side to Side</option>
+            <option value="top2Bottom">Top to Bottom</option>
+            <option value="blendAngle">Blend Angle</option>
+            <option value="outward">Outward</option>
+            <option value="outwardSquare">Outward Square</option>
+            <option value="glitchSort">Glitch Sort</option>
+            <option value="pixelSort">Pixel Sort</option>
+            <option value="blend3">Blend 3</option>
+            <option value="negParadox">Neg Paradox</option>
+            <option value="thoughtMode">Thought Mode</option>
+            <option value="blank">Blank</option>
+            <option value="tri">Tri</option>
+            <option value="distort">Distort</option>
+            <option value="cDraw">C Draw</option>
+            <option value="oppositeBlend">Opposite Blend</option>
+            <option value="diagonalLines">Diagonal Lines</option>
+            <option value="horizontalLines">Horizontal Lines</option>
+            <option value="invertedScanlines">Inverted Scanlines</option>
+            <option value="softMirror">Soft Mirror</option>
+            <option value="kanapaTrip">Kanapa Trip</option>
+            <option value="scanSwitch">Scan Switch</option>
+            <option value="scanAlphaSwitch">Scan Alpha Switch</option>
+            <option value="xorAddMul">XOR Add Mul</option>
+            <option value="blendSwitch">Blend Switch</option>
+            <option value="allRed">All Red</option>
+            <option value="allGreen">All Green</option>
+            <option value="allBlue">All Blue</option>
+            <option value="lineRGB">Line RGB</option>
+            <option value="pixelRGB">Pixel RGB</option>
+            <option value="boxedRGB">Boxed RGB</option>
+            <option value="kruegerSweater">Krueger Sweater</option>
+            <option value="rgbFlash">RGB Flash</option>
+            <option value="increaseBlendHorizontal">Increase Blend Horizontal</option>
+            <option value="blendIncrease">Blend Increase</option>
+            <option value="gradientReverse">Gradient Reverse</option>
+            <option value="gradientReverseBox">Gradient Reverse Box</option>
+            <option value="gradientReverseVertical">Gradient Reverse Vertical</option>
+            <option value="gradientNewFilter">Gradient New Filter</option>
+            <option value="reinterpretDouble">Reinterpret Double</option>
+            <option value="reinterpSelfScale">Reinterp Self Scale</option>
+            <option value="averageLines">Average Lines</option>
+        </select>
+        <label for="iterationSlider">Iterations:</label>
+        <input type="range" id="iterationSlider" min="1" max="100" value="1">
+    </div>
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <input type="file" id="fileInput" style="display:none">
+
+    <script src="script.js"></script>
+</body>
+</html>
