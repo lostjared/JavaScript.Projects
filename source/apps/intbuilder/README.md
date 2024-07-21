@@ -1,3 +1,5 @@
+![image](https://github.com/user-attachments/assets/ca81a468-0dd9-4547-9430-636ddc9e37de)
+
 ## Overview
 
 Intuition Builder is a simple and engaging card game designed to help you improve your intuitive abilities. In this game, you are tasked with guessing the value of the next card in a deck, enhancing your ability to trust your instincts and make quick decisions.
