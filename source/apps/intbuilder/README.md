@@ -7,6 +7,8 @@ Intuition Builder is a simple and engaging card game designed to help you improv
 ## Motivation
 
 This game was based off of a game described in "The Pathways to Mastership" tape set by Jonathan Parker. It has been modified to work on a computer.
+The motivation behind it was to create something similar that I could use on my computer and share with others online.
+
 
 ## How to Play
 
