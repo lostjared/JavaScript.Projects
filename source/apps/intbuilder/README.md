@@ -4,6 +4,10 @@
 
 Intuition Builder is a simple and engaging card game designed to help you improve your intuitive abilities. In this game, you are tasked with guessing the value of the next card in a deck, enhancing your ability to trust your instincts and make quick decisions.
 
+## Motivation
+
+This game was based off of a game described in "The Pathways to Mastership" tape set by Jonathan Parker. It has been modified to work on a computer.
+
 ## How to Play
 
 1. **Starting the Game:**
