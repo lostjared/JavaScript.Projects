@@ -197,7 +197,7 @@ function draw() {
         context.drawImage(images[draw_card], 600, 100);
     }
     if(game_over == true) {
-        context.fillStyle="#FFFFFF";
+        context.fillStyle="#BD0000";
         context.fillText(psychic_string,150, 300);
     }
 }   
