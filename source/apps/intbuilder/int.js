@@ -63,7 +63,7 @@ function genRating() {
         case 10:
             return "You are Psychic.";    
     }
-    return "Should never get here";
+    return "Should never get here - You are smarter than the average bear.";
 }
 
 function init() {
