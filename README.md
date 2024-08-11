@@ -1,36 +1,22 @@
-# HTML5/JavaScript.Projects
-Practice Projects written in HTML5/JavaScript
-Instead of having a repo for each of these new mini-projects, I decided to put them all in the same repo.
-All future JavaScript practice projects will go here from now on.
+# Practice Projects written in HTML5/JavaScript
 
-So far this project includes:
+Instead of having a repo for each of these new mini-projects, I decided to put them all in the same repo. All future JavaScript practice projects will go here from now on.
 
-Acid.Cam.Filter.JavaScript
+## So far this project includes:
 
-Code.Crunch.JavaScript
-
-CodeMatrix.JavaScript
-
-Fractal.Generator.JavaScript
-
-Generic.Puzzle.Game.JavaScript
-
-Image.Filters.JavaScript
-
-Knights_Tour.JavaScript
-
-MasterBall.JavaScript
-
-MasterPiece.JavaScript
-
-MasterPiece3D.JavaScript
-
-Pong.JavaScript
-
-Remember.Words.JavaScript
-
-Snake.JavaScript
-
-intbuilder
+- **Acid.Cam.Filter.JavaScript**
+- **Code.Crunch.JavaScript**
+- **CodeMatrix.JavaScript**
+- **Fractal.Generator.JavaScript**
+- **Generic.Puzzle.Game.JavaScript**
+- **Image.Filters.JavaScript**
+- **Knights_Tour.JavaScript**
+- **MasterBall.JavaScript**
+- **MasterPiece.JavaScript**
+- **MasterPiece3D.JavaScript**
+- **Pong.JavaScript**
+- **Remember.Words.JavaScript**
+- **Snake.JavaScript**
+- **intbuilder**
 
 Go to the Web Apps section of http://lostsidedead.biz to try these apps out.
