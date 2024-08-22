@@ -18,6 +18,6 @@ Instead of having a repo for each of these new mini-projects, I decided to put t
 - **Remember.Words.JavaScript**
 - **Snake.JavaScript**
 - **intbuilder**
-- - **mad**
+- **mad**
 
 Go to the Web Apps section of http://lostsidedead.biz to try these apps out.
