@@ -1,0 +1,12 @@
+CURRENT 1.0 
+NOTE:
+
+	How to Play is easy just use your Joystick or Keyboard
+	arrow keys to move the blocks, A or Button 1 to Swap Color
+	New to this version is Blocks move up and down instead of
+	just one Direction
+---------
+1.0
+- added Multiplayer 
+- added Options screen with ability to toggle fullscreen
+- completed base game
