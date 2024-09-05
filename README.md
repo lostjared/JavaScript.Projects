@@ -24,5 +24,6 @@ Instead of having a repo for each of these new mini-projects, I decided to put t
 - **Current - Multi Directional Puzzle Game C++ to WASM/JavaScript**
 - **MX Game Engine C++ to WASM/JavaScript**
 - **LostMasterPiece - Puzzle Game C++ to WASM/JavaScript**
+- **3Card - Card Game C++ to WASM/JavaScript**
 
 Go to the Web Apps section of http://lostsidedead.biz to try these apps out.
