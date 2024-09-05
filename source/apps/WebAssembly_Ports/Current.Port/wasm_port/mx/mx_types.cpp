@@ -1,0 +1,124 @@
+/*
+	MX library.
+
+	http://lostsidedead.com/svn
+
+
+	libmx written by jared bruni, it is wrappers around SDL
+and other api's to provide a set of classes and functions
+to produce multi media applications, using object oriented
+techniques.
+
+ 	(C) 2008 LostSideDead
+*/
+
+
+#include "mx_types.h"
+
+
+
+
+
+namespace mx
+{
+
+
+	Color::Color()
+	{
+
+		color.value = 0;
+	}
+
+	Color::Color(const __Color &c)
+	{
+		color = c;
+	}
+
+	Color::Color(unsigned char r, unsigned char g, unsigned char b)
+	{
+
+		color.colors[0] = r, color.colors[1] = g, color.colors[2] = b;
+	}
+
+
+	Color::Color(const unsigned int value)
+	{
+		color.value = value;
+	}
+
+
+	Color::Color(const Color &c)
+	{
+		color = c.color;
+	}
+
+	Color::Color(const SDL_Color &c)
+	{
+
+		color.colors[0] = c.r;
+		color.colors[1] = c.g;
+		color.colors[2] = c.b;
+
+	}
+
+	Color &Color::operator=(const Color &c)
+	{
+		color = c.color;
+		return *this;
+	}
+
+	Color &Color::operator=(const unsigned int long_x)
+	{
+
+		color.value = long_x;
+		return *this;
+
+	}
+	Color &Color::operator=(const SDL_Color &c)
+	{
+
+		color.colors[0] = c.r;
+		color.colors[1] = c.g;
+		color.colors[2] = c.b;
+		return *this;
+	}
+
+	const SDL_Color Color::toSDL_Color() const
+	{
+
+		SDL_Color col = { color.colors[0], color.colors[1], color.colors[2], 0 };
+		return col;
+
+	}
+
+	const unsigned int Color::toInteger() const
+	{
+		return color.value;
+	}
+
+	SDL_Surface *CreateBuffer(size_t w, size_t h)
+	{
+
+	        	SDL_Surface *surface;
+
+	        	static int rmask, gmask, bmask, amask;
+			#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+	    		rmask = 0xff000000;
+	    		gmask = 0x00ff0000;
+	    		bmask = 0x0000ff00;
+	    		amask = 0x000000ff;
+			#else
+	    		rmask = 0x000000ff;
+	    		gmask = 0x0000ff00;
+	    		bmask = 0x00ff0000;
+	    		amask = 0xff000000;
+			#endif
+
+	         	surface =  SDL_CreateRGBSurface(SDL_SWSURFACE , w, h, 32, rmask, gmask,bmask, amask);
+			return surface;
+		}
+
+
+}
+
+
