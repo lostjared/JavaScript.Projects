@@ -21,5 +21,6 @@ Instead of having a repo for each of these new mini-projects, I decided to put t
 - **mad**
 - **MasterPiece C++ to WASM/JavaScript port**
 - **Super Stoner 420 C to WASM/JavaScript port**
+- **Current - Multi Directional Puzzle Game **
 
 Go to the Web Apps section of http://lostsidedead.biz to try these apps out.
