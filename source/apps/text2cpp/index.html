@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text2Cpp Conversion Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #output {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            white-space: pre-wrap;
+            height: 200px;
+            overflow-y: scroll;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+        }
+        input, select, button {
+            margin-bottom: 10px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>Text2Cpp Conversion Tool</h1>
+
+    <label for="inputText">Input Text/File Content:</label>
+    <textarea id="inputText"></textarea>
+
+    <label for="variableName">Variable Name:</label>
+    <input type="text" id="variableName" placeholder="e.g., bin_vec">
+
+    <label for="outputType">Output Type:</label>
+    <select id="outputType">
+        <option value="vector">Vector</option>
+        <option value="array">Array</option>
+        <option value="string">String</option>
+    </select>
+
+    <label for="unicode">Unicode Output:</label>
+    <input type="checkbox" id="unicode">
+
+    <label for="sorted">Sort Lines:</label>
+    <input type="checkbox" id="sorted">
+
+    <label for="outputFile">Output to File (Optional, just provide name):</label>
+    <input type="text" id="outputFile" placeholder="e.g., output.hpp">
+
+    <button onclick="convert()">Convert</button>
+
+    <div id="output"></div>
+
+    <script>
+        function convert() {
+            const inputText = document.getElementById("inputText").value;
+            const variableName = document.getElementById("variableName").value || "var_name";
+            const outputType = document.getElementById("outputType").value;
+            const unicode = document.getElementById("unicode").checked;
+            const sorted = document.getElementById("sorted").checked;
+            const outputFile = document.getElementById("outputFile").value;
+
+            let output = '';
+            let lines = inputText.split(/\r?\n/);
+
+            if (sorted) {
+                lines.sort();
+            }
+
+            if (outputType === "vector") {
+                output += generateVectorOutput(variableName, lines);
+            } else if (outputType === "array") {
+                output += generateArrayOutput(variableName, lines);
+            } else if (outputType === "string") {
+                output += generateStringOutput(variableName, lines, unicode);
+            }
+
+            if (outputFile) {
+                output = wrapInFile(outputFile, output, outputType);
+            }
+
+            document.getElementById("output").textContent = output;
+        }
+
+        function generateVectorOutput(variableName, lines) {
+            let output = `inline const std::vector<unsigned char> ${variableName} = {`;
+            const hexValues = lines.map(line => line.split('').map(char => `0x${char.charCodeAt(0).toString(16).toUpperCase()}`).join(', ')).join(', ');
+            output += hexValues;
+            output += "};\n";
+            return output;
+        }
+
+        function generateArrayOutput(variableName, lines) {
+            let totalLength = lines.reduce((acc, line) => acc + line.length, 0);
+            let output = `inline const std::array<unsigned char, ${totalLength}> ${variableName} = {`;
+            const hexValues = lines.map(line => line.split('').map(char => `0x${char.charCodeAt(0).toString(16).toUpperCase()}`).join(', ')).join(', ');
+            output += hexValues;
+            output += "};\n";
+            return output;
+        }
+
+        function generateStringOutput(variableName, lines, unicode) {
+            let output = `inline const ${unicode ? 'std::wstring' : 'std::string'} ${variableName}[] = {`;
+            output += lines.map(line => `${unicode ? 'L' : ''}"${escapeString(line)}"`).join(', ');
+            output += "};\n";
+            output += `inline unsigned long ${variableName}_length = ${lines.length};\n`;
+            return output;
+        }
+
+        function escapeString(str) {
+            return str.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+        }
+
+        function wrapInFile(fileName, content, outputType) {
+            let defineName = fileName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase();
+            let output = `#ifndef __${defineName}_HPP_\n#define __${defineName}_HPP_\n`;
+            if (outputType === 'array') {
+                output += '#include <array>\n\n';
+            } else if (outputType === 'vector') {
+                output += '#include <vector>\n\n';
+            } else {
+                output += '#include <string>\n\n';
+            }
+            output += content;
+            output += `#endif // __${defineName}_HPP_\n`;
+            return output;
+        }
+    </script>
+</body>
+</html>
