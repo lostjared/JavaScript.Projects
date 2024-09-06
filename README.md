@@ -27,5 +27,6 @@ Instead of having a repo for each of these new mini-projects, I decided to put t
 - **3Card - Card Game C++ to WASM/JavaScript**
 - **EMX - 2D Game Engine C++ to WASM/JavaScript**
 - **SuperMaster2 - Scroller C++ to WASM/JavaScript**
+- **SuperMasterSKong - Madbomber Clone C++ to WASM/JavaScript**
 
 Go to the Web Apps section of http://lostsidedead.biz to try these apps out.
