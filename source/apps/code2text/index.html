@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Code2Text - Generate Random Words from Text</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; }
+  textarea { width: 100%; height: 150px; }
+  input, select { margin: 5px 0; }
+  .output { margin-top: 20px; }
+</style>
+</head>
+<body>
+
+<h1>Code2Text - Generate Random Words from Text</h1>
+
+<textarea id="inputText" placeholder="Paste your text or code here..."></textarea>
+
+<h3>Options:</h3>
+<label for="numWords">Number of words to find (-n):</label>
+<input type="number" id="numWords" value="10"><br>
+
+<label for="minLength">Minimum word length (-l):</label>
+<input type="number" id="minLength" value="5"><br>
+
+<label for="maxLength">Maximum word length (-m):</label>
+<input type="number" id="maxLength" value="-1"><br>
+
+<label for="containsString">Word contains string (-c):</label>
+<input type="text" id="containsString" placeholder="<NULL>"><br>
+
+<label for="underscoreWords">Only find underscore words (-u):</label>
+<input type="checkbox" id="underscoreWords"><br>
+
+<label for="sortWords">Sort output list of words (-s):</label>
+<input type="checkbox" id="sortWords"><br>
+
+<label for="listAllWords">List all collected words (-w):</label>
+<input type="checkbox" id="listAllWords"><br>
+
+<button onclick="generateWords()">Generate Words</button>
+
+<div class="output" id="output"></div>
+
+<script>
+function removeChars(input) {
+  return input.replace(/['".]/g, ' ');
+}
+
+function generateWords() {
+  const inputText = document.getElementById('inputText').value;
+  const numWords = parseInt(document.getElementById('numWords').value);
+  const minLength = parseInt(document.getElementById('minLength').value);
+  const maxLength = parseInt(document.getElementById('maxLength').value);
+  const containsString = document.getElementById('containsString').value || '';
+  const underscoreWords = document.getElementById('underscoreWords').checked;
+  const sortWords = document.getElementById('sortWords').checked;
+  const listAllWords = document.getElementById('listAllWords').checked;
+
+  const cleanedText = removeChars(inputText);
+  let tokens = cleanedText.match(/\b[A-Za-z_][A-Za-z0-9_]*\b/g) || [];
+
+  let wordSet = new Set();
+  tokens.forEach(token => {
+    let word = token;
+    if (underscoreWords) {
+      const index = token.indexOf('_');
+      if (index !== -1) {
+        word = token.substring(0, index);
+      } else {
+        return;
+      }
+    }
+
+    const lengthValid = maxLength === -1
+      ? word.length >= minLength
+      : word.length >= minLength && word.length <= maxLength;
+
+    const containsValid = containsString === '' || word.includes(containsString);
+
+    if (lengthValid && containsValid) {
+      wordSet.add(word);
+    }
+  });
+
+  const wordArray = Array.from(wordSet);
+
+  if (listAllWords) {
+    document.getElementById('output').innerHTML = `<h3>List of Collected Words:</h3><p>${wordArray.join(' ')}</p>`;
+  } else {
+    document.getElementById('output').innerHTML = '';
+  }
+
+  if (wordArray.length < numWords) {
+    alert('Not enough words collected to generate the requested number of words.');
+    return;
+  }
+
+  let selectedWords = [];
+  const wordsCopy = [...wordArray];
+
+  for (let i = 0; i < numWords; i++) {
+    const randomIndex = Math.floor(Math.random() * wordsCopy.length);
+    selectedWords.push(wordsCopy[randomIndex]);
+    wordsCopy.splice(randomIndex, 1);
+  }
+
+  if (sortWords) {
+    selectedWords.sort();
+  }
+
+  document.getElementById('output').innerHTML += `<h3>Generated Words:</h3><p>${selectedWords.join(' ')}</p>`;
+}
+</script>
+
+</body>
+</html>
