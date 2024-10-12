@@ -17,6 +17,7 @@ Instead of having a repo for each of these new mini-projects, I decided to put t
 - **Pong.JavaScript**
 - **Remember.Words.JavaScript**
 - **Snake.JavaScript**
+- **Matrix Emulator**
 - **intbuilder**
 - **mad**
 - **text2cpp**
