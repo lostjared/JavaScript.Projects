@@ -32,5 +32,6 @@ Instead of having a repo for each of these new mini-projects, I decided to put t
 - **SuperMaster2 - Scroller C++ to WASM/JavaScript**
 - **SuperMasterKong - Madbomber Clone C++ to WASM/JavaScript**
 - **MasterKong2D - Second game I ever wrote C++ to WASM/JavaScript**
+- **MPC (MasterPiece C Edition) - Puzzle game written in C**
 
 Go to the Web Apps section of http://lostsidedead.biz to try these apps out.
