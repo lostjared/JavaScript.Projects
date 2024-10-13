@@ -359,19 +359,24 @@ void set_piece() {
 
 void game_init(SDL_Renderer* renderer) {
     game.renderer = renderer;
-    puzzle_grid_init(renderer, 8, 17, 325, 25);
+    puzzle_grid_init(renderer, 8, 17, 335, 125);
     game_speed = 1000;
     game_over = false;
     score = 0;
 }
 
+SDL_Texture *bg = NULL;
+
 void game_draw(TTF_Font* font) {
     SDL_SetRenderDrawColor(game.renderer, 0, 0, 0, 255);
     SDL_RenderClear(game.renderer);
-
+    SDL_RenderCopy(game.renderer, bg, NULL, NULL);
     if (game_over) {
         print_text(game.renderer, font, "Game Over", (SDL_Color){255, 255, 255, 255}, 50, 50);
-        print_text(game.renderer, font, "Press Enter to Start a New Game", (SDL_Color){255, 0, 0, 255}, 75, 150);
+        SDL_Rect rc = { 325, 150, 575, 35 };
+        SDL_SetRenderDrawColor(game.renderer, 0, 0, 0, 255);
+        SDL_RenderFillRect(game.renderer, &rc);
+        print_text(game.renderer, font, "Press Enter to Start a New Game", (SDL_Color){rand()%255, rand()%255, rand()%255, 255}, 335, 150);
     } else {
         puzzle_grid_draw();
         char score_text[50];
@@ -411,7 +416,7 @@ void new_game() {
         free(game.grid.puzzle_grid[i]);
     }
     free(game.grid.puzzle_grid);
-    puzzle_grid_init(game.renderer, 8, 17, 325, 25);
+    puzzle_grid_init(game.renderer, 8, 17, 335, 125);
     game_speed = 1000;
     game_over = false;
     score = 0;
@@ -484,10 +489,26 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+
+    SDL_Surface *surf = SDL_LoadBMP("/data/bg.bmp");
+    if(!surf) {
+        fprintf(stderr, "Error loading surfaace..\n");
+        exit(EXIT_FAILURE);
+    }
+    bg = SDL_CreateTextureFromSurface(renderer, surf);
+
+    if(!bg) {
+        fprintf(stderr, "Error creating texture..\n");
+        exit(EXIT_FAILURE);
+    }
+
+    SDL_FreeSurface(surf);
+
     game_init(renderer);
     ticks = SDL_GetTicks();
     emscripten_set_main_loop(events, 0, 1);
     cleanup();
+    SDL_DestroyTexture(bg);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     TTF_CloseFont(font);
