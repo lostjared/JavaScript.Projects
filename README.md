@@ -22,6 +22,7 @@ Instead of having a repo for each of these new mini-projects, I decided to put t
 - **intbuilder**
 - **mad**
 - **text2cpp**
+- **expr - Expression Evalulator**
 - **MasterPiece C++ to WASM/JavaScript port**
 - **Super Stoner 420 C to WASM/JavaScript port**
 - **Current - Multi Directional Puzzle Game C++ to WASM/JavaScript**
