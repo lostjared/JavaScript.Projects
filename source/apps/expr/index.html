@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Expression Evaluator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #expressionInput {
+            width: 300px;
+        }
+        #result {
+            margin-top: 20px;
+        }
+    </style>
+    <script>
+        const TokenType = {
+            NOTHING: 0,
+            CHAR: 1,
+            WHITESPACE: 2,
+            STRING: 3,
+            DIGIT: 4,
+            OPERATOR: 5,
+            IDENTIFIER: 6,
+            PRINT: 7,
+            EOF: 8
+        };
+
+        class Token {
+            constructor(text, type) {
+                this.text = text;
+                this.type = type;
+            }
+        }
+
+        class Lexer {
+            constructor(input) {
+                this.input = input;
+                this.position = 0;
+                this.currentChar = '';
+                this.tokenMap = this.initTokenMap();
+                this.advance();
+            }
+
+            initTokenMap() {
+                const tokenMap = {};
+                for (let i = 0; i < 256; i++) {
+                    tokenMap[String.fromCharCode(i)] = TokenType.NOTHING;
+                }
+                for (let i = 65; i <= 90; i++) {
+                    tokenMap[String.fromCharCode(i)] = TokenType.CHAR;
+                }
+                for (let i = 97; i <= 122; i++) {
+                    tokenMap[String.fromCharCode(i)] = TokenType.CHAR;
+                }
+                tokenMap['_'] = TokenType.CHAR;
+                for (let i = 48; i <= 57; i++) {
+                    tokenMap[String.fromCharCode(i)] = TokenType.DIGIT;
+                }
+                tokenMap[' '] = TokenType.WHITESPACE;
+                tokenMap['\t'] = TokenType.WHITESPACE;
+                const operators = ';:.-()[]{}!@#$%^&*=+~"\'`,\\/<>?';
+                for (let op of operators) {
+                    tokenMap[op] = TokenType.OPERATOR;
+                }
+                return tokenMap;
+            }
+
+            advance() {
+                if (this.position < this.input.length) {
+                    this.currentChar = this.input[this.position++];
+                } else {
+                    this.currentChar = null;
+                }
+            }
+
+            getToken() {
+                while (this.currentChar !== null && this.tokenMap[this.currentChar] === TokenType.WHITESPACE) {
+                    this.advance();
+                }
+
+                if (this.currentChar === null) {
+                    return new Token('', TokenType.EOF);
+                }
+
+                const charType = this.tokenMap[this.currentChar];
+
+                if (charType === TokenType.DIGIT) {
+                    return this.getNumberToken();
+                } else if (charType === TokenType.CHAR) {
+                    return this.getIdentifierToken();
+                } else if (charType === TokenType.OPERATOR) {
+                    return this.getOperatorToken();
+                } else {
+                    console.warn('Unrecognized character:', this.currentChar);
+                    this.advance();
+                    return this.getToken();
+                }
+            }
+
+            getNumberToken() {
+                let numStr = '';
+                let dotCount = 0;
+
+                while (this.currentChar !== null && (this.tokenMap[this.currentChar] === TokenType.DIGIT || this.currentChar === '.')) {
+                    if (this.currentChar === '.') {
+                        dotCount++;
+                        if (dotCount > 1) {
+                            throw new Error('Invalid number format');
+                        }
+                    }
+                    numStr += this.currentChar;
+                    this.advance();
+                }
+
+                return new Token(numStr, TokenType.DIGIT);
+            }
+
+            getIdentifierToken() {
+                let idStr = '';
+
+                while (this.currentChar !== null && (this.tokenMap[this.currentChar] === TokenType.CHAR || this.tokenMap[this.currentChar] === TokenType.DIGIT)) {
+                    idStr += this.currentChar;
+                    this.advance();
+                }
+
+                return new Token(idStr, TokenType.CHAR);
+            }
+
+            getOperatorToken() {
+                const opChar = this.currentChar;
+                let opStr = opChar;
+                this.advance();
+                if ((opChar === '+' || opChar === '-' || opChar === '*' || opChar === '/') && this.currentChar === '=') {
+                    opStr += this.currentChar;
+                    this.advance();
+                }
+                return new Token(opStr, TokenType.OPERATOR);
+            }
+        }
+
+        class Parser {
+            constructor(lexer) {
+                this.lexer = lexer;
+                this.currentToken = this.lexer.getToken();
+                this.variables = Parser.variables;
+            }
+
+            eat(tokenType) {
+                if (this.currentToken.type === tokenType) {
+                    this.currentToken = this.lexer.getToken();
+                } else {
+                    throw new Error(`Unexpected token: ${this.currentToken.text}`);
+                }
+            }
+
+            factor() {
+                const token = this.currentToken;
+
+                if (token.type === TokenType.DIGIT) {
+                    this.eat(TokenType.DIGIT);
+                    return parseFloat(token.text);
+                } else if (token.type === TokenType.CHAR) {
+                    const varName = token.text;
+                    this.eat(TokenType.CHAR);
+                    if (this.currentToken.text === '(') {
+                        this.eat(TokenType.OPERATOR);
+                        const arg = this.expr();
+                        if (this.currentToken.text === ')') {
+                            this.eat(TokenType.OPERATOR);
+                        } else {
+                            throw new Error('Expected )');
+                        }
+                        if (varName === 'sqrt') {
+                            return Math.sqrt(arg);
+                        } else if (varName === 'sin') {
+                            return Math.sin(arg);
+                        } else if (varName === 'cos') {
+                            return Math.cos(arg);
+                        } else if (varName === 'tan') {
+                            return Math.tan(arg);
+                        } else {
+                            throw new Error(`Unknown function: ${varName}`);
+                        }
+                    } else if (this.currentToken.text === '=' || this.currentToken.text === '+=') {
+                        const operator = this.currentToken.text;
+                        this.eat(TokenType.OPERATOR);
+                        const value = this.expr();
+                        if (operator === '=') {
+                            this.variables[varName] = value;
+                        } else if (operator === '+=') {
+                            this.variables[varName] = (this.variables[varName] || 0) + value;
+                        }
+                        return this.variables[varName];
+                    } else {
+                        if (varName in this.variables) {
+                            return this.variables[varName];
+                        } else {
+                            throw new Error(`Undefined variable: ${varName}`);
+                        }
+                    }
+                } else if (token.text === '(') {
+                    this.eat(TokenType.OPERATOR);
+                    const value = this.expr();
+                    if (this.currentToken.text === ')') {
+                        this.eat(TokenType.OPERATOR);
+                    } else {
+                        throw new Error('Expected )');
+                    }
+                    return value;
+                } else if (token.text === '-') {
+                    this.eat(TokenType.OPERATOR);
+                    return -this.factor();
+                } else {
+                    throw new Error(`Unexpected token: ${token.text}`);
+                }
+            }
+
+            term() {
+                let result = this.factor();
+
+                while (this.currentToken.text === '*' || this.currentToken.text === '/' || this.currentToken.text === '%') {
+                    if (this.currentToken.text === '*') {
+                        this.eat(TokenType.OPERATOR);
+                        result *= this.factor();
+                    } else if (this.currentToken.text === '/') {
+                        this.eat(TokenType.OPERATOR);
+                        const divisor = this.factor();
+                        if (divisor === 0) {
+                            throw new Error('Division by zero');
+                        }
+                        result /= divisor;
+                    } else if (this.currentToken.text === '%') {
+                        this.eat(TokenType.OPERATOR);
+                        const divisor = this.factor();
+                        result %= divisor;
+                    }
+                }
+
+                return result;
+            }
+
+            expr() {
+                let result = this.term();
+
+                while (this.currentToken.text === '+' || this.currentToken.text === '-') {
+                    if (this.currentToken.text === '+') {
+                        this.eat(TokenType.OPERATOR);
+                        result += this.term();
+                    } else if (this.currentToken.text === '-') {
+                        this.eat(TokenType.OPERATOR);
+                        result -= this.term();
+                    }
+                }
+
+                return result;
+            }
+
+            parse() {
+                const result = this.expr();
+                if (this.currentToken.type !== TokenType.EOF && this.currentToken.text !== ';') {
+                    throw new Error('Unexpected token at end of expression');
+                }
+                return result;
+            }
+        }
+
+        Parser.variables = {};
+
+        function evaluateExpression() {
+            const input = document.getElementById('expressionInput').value.trim();
+            try {
+                const lexer = new Lexer(input);
+                const parser = new Parser(lexer);
+                const result = parser.parse();
+                document.getElementById('result').innerText = 'Result: ' + result;
+
+                const varsDiv = document.getElementById('variables');
+                varsDiv.innerHTML = '<h3>Variables:</h3>';
+                for (const [key, value] of Object.entries(Parser.variables)) {
+                    varsDiv.innerHTML += `<p>${key} = ${value}</p>`;
+                }
+            } catch (err) {
+                document.getElementById('result').innerText = 'Error: ' + err.message;
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Expression Evaluator</h1>
+    <input type="text" id="expressionInput" placeholder="Enter expression" style="width: 300px;">
+    <button onclick="evaluateExpression()">Evaluate</button>
+    <p id="result"></p>
+    <div id="variables"></div>
+</body>
+</html>
