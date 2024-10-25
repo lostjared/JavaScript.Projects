@@ -20,6 +20,7 @@ Instead of having a repo for each of these new mini-projects, I decided to put t
 - **Matrix Emulator**
 - **code2text**
 - **intbuilder**
+- **in2rs**
 - **mad**
 - **text2cpp**
 - **expr - Expression Evalulator**
