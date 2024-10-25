@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Meta Tags and Title -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C++ Text Converter</title>
+    <!-- Link to External CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>C++ Text Converter</h1>
+        
+        <!-- Input Text -->
+        <div class="form-group">
+            <label for="inputText">Input Text:</label>
+            <textarea id="inputText" rows="5" placeholder="Enter your text here..."></textarea>
+        </div>
+
+        <!-- Variable Name -->
+        <div class="form-group">
+            <label for="varName">Variable Name:</label>
+            <input type="text" id="varName" placeholder="Enter variable name">
+        </div>
+
+        <!-- Output Type Options -->
+        <div class="form-group">
+            <label>Output Type:</label>
+            <div class="options">
+                <label><input type="radio" name="outputType" value="string" checked> String Array</label>
+                <label><input type="radio" name="outputType" value="char"> Char Array</label>
+                <label><input type="radio" name="outputType" value="binary"> Binary Array</label>
+            </div>
+        </div>
+
+        <!-- Sorting Options -->
+        <div class="form-group">
+            <label>Sorting Options:</label>
+            <div class="options">
+                <label><input type="checkbox" id="skipBlanks"> Skip Blank Lines</label>
+                <label><input type="radio" name="sortType" value="asc" checked> Sort Ascending</label>
+                <label><input type="radio" name="sortType" value="desc"> Sort Descending</label>
+            </div>
+        </div>
+
+        <!-- Convert Button -->
+        <button onclick="convertText()">Convert</button>
+        
+        <!-- Output Display -->
+        <h2>Output:</h2>
+        <div id="output"></div>
+    </div>
+
+    <!-- Link to External JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>
