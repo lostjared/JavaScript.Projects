@@ -18,18 +18,20 @@ function convertText() {
         return;
     }
 
-    // Updated line to handle different line endings
+    // Split lines, handling different line endings
     let lines = inputText.split(/\r?\n/);
 
     if (skipBlanks) {
         lines = lines.filter(line => line.trim().length > 0);
     }
 
+    // Sort lines if required by sortType
     if (sortType === 'asc') {
         lines.sort((a, b) => a.localeCompare(b));
     } else if (sortType === 'desc') {
         lines.sort((a, b) => b.localeCompare(a));
     }
+    // If sortType is 'none', leave lines in their original order
 
     let output = "";
     if (outputType === 'string') {
@@ -49,7 +51,7 @@ function convertText() {
         lines.forEach(line => {
             output += `    ${Array.from(line).map(c => `0x${c.charCodeAt(0).toString(16).padStart(2, '0')}`).join(', ')},\n`;
         });
-       output += `};\n`;
+        output += `};\n`;
     }
 
     document.getElementById("output").textContent = output;
