@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text to Rust/C++ Converter</title>
+</head>
+<body>
+    <h1>Text to Rust/C++ Converter</h1>
+
+    <label for="inputText">Input Text:</label>
+    <textarea id="inputText" rows="10" cols="50" placeholder="Enter your text here..."></textarea>
+
+    <div>
+        <input type="radio" id="rust" name="language" value="rust" checked>
+        <label for="rust">Rust</label>
+        <input type="radio" id="cpp" name="language" value="cpp">
+        <label for="cpp">C++</label>
+    </div>
+
+    <label>
+        <input type="checkbox" id="skipBlanks"> Skip Blank Lines
+    </label>
+
+    <button onclick="convertText()">Convert</button>
+
+    <h2>Output:</h2>
+    <pre id="output"></pre>
+
+    <script>
+        function slashSeq(input) {
+            return input.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+        }
+
+        function convertToRust(input, name, skipBlanks) {
+            const lines = input.split('\n');
+            let output = `let ${name} = vec![`;
+            lines.forEach((line, index) => {
+                if (line.trim() === "" && skipBlanks) return;
+                output += `\n    "${slashSeq(line)}"`;
+                if (index < lines.length - 1) output += ",";
+            });
+            output += "\n];";
+            return output;
+        }
+
+        function convertToCpp(input, name, skipBlanks) {
+            const lines = input.split('\n');
+            let output = `std::vector<std::string> ${name} = {`;
+            lines.forEach((line, index) => {
+                if (line.trim() === "" && skipBlanks) return;
+                output += `\n    "${slashSeq(line)}"`;
+                if (index < lines.length - 1) output += ",";
+            });
+            output += "\n};";
+            return output;
+        }
+
+        function convertText() {
+            const inputText = document.getElementById("inputText").value;
+            const language = document.querySelector('input[name="language"]:checked').value;
+            const skipBlanks = document.getElementById("skipBlanks").checked;
+            const name = "v"; // Default variable name for output
+
+            let output;
+            if (language === "rust") {
+                output = convertToRust(inputText, name, skipBlanks);
+            } else {
+                output = convertToCpp(inputText, name, skipBlanks);
+            }
+
+            document.getElementById("output").textContent = output;
+        }
+    </script>
+</body>
+</html>
