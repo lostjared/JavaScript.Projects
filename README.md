@@ -23,6 +23,7 @@ Instead of having a repo for each of these new mini-projects, I decided to put t
 - **in2rs**
 - **mad**
 - **text2cpp**
+- **bin2cpp**
 - **echo_text_js**
 - **expr - Expression Evalulator**
 - **MasterPiece C++ to WASM/JavaScript port**
