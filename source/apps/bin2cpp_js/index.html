@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>bin2cpp Converter</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>bin2cpp Converter</h1>
+        <form id="converter-form">
+            <div class="form-group">
+                <label for="input-data">Input Data:</label>
+                <textarea id="input-data" placeholder="Enter your data here or upload a file below"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="file-upload">Or Upload File:</label>
+                <input type="file" id="file-upload" accept=".txt,.bin">
+            </div>
+            <div class="form-group">
+                <label for="variable-name">Variable Name:</label>
+                <input type="text" id="variable-name" placeholder="Enter variable name" required>
+            </div>
+            <div class="form-group">
+                <label for="conversion-type">Conversion Type:</label>
+                <select id="conversion-type">
+                    <option value="array">Array</option>
+                    <option value="vector">Vector</option>
+                    <option value="string">String</option>
+                </select>
+            </div>
+            <div class="form-group checkbox-group">
+                <label><input type="checkbox" id="unicode"> Unicode</label>
+                <label><input type="checkbox" id="sorted"> Sort Strings</label>
+            </div>
+            <button type="submit">Convert</button>
+        </form>
+        <div class="output-section">
+            <h2>Generated C++ Code:</h2>
+            <button id="copy-button">Copy to Clipboard</button>
+            <pre id="output-code"></pre>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
