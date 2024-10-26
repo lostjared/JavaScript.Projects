@@ -31,27 +31,23 @@ function convertText() {
     } else if (sortType === 'desc') {
         lines.sort((a, b) => b.localeCompare(a));
     }
-    // If sortType is 'none', leave lines in their original order
 
     let output = "";
     if (outputType === 'string') {
         output += `std::vector<std::string> ${varName}_arr = {\n`;
-        lines.forEach(line => {
-            output += `    "${escapeString(line)}",\n`;
-        });
-        output += `};\nconst size_t ${varName}_size = ${lines.length};\n// Variable type: std::string array`;
+        output += lines.map(line => `    "${escapeString(line)}"`).join(',\n');
+        output += `\n};\nconst size_t ${varName}_size = ${lines.length};\n`;
     } else if (outputType === 'char') {
         output += `const char* ${varName}_arr[] = {\n`;
-        lines.forEach(line => {
-            output += `    "${escapeString(line)}",\n`;
-        });
-        output += `};\nconst size_t ${varName}_size = ${lines.length};\n// Variable type: const char* array`;
+        output += lines.map(line => `    "${escapeString(line)}"`).join(',\n');
+        output += `\n};\nconst size_t ${varName}_size = ${lines.length};\n`;
     } else if (outputType === 'binary') {
         output += `std::vector<unsigned char> ${varName}_arr = {\n`;
-        lines.forEach(line => {
-            output += `    ${Array.from(line).map(c => `0x${c.charCodeAt(0).toString(16).padStart(2, '0')}`).join(', ')},\n`;
-        });
-        output += `};\n`;
+        let hexValues = lines.flatMap(line => 
+            Array.from(line).map(c => `0x${c.charCodeAt(0).toString(16).padStart(2, '0')}`)
+        );
+        output += '    ' + hexValues.join(', ');
+        output += `\n};\n`;
     }
 
     document.getElementById("output").textContent = output;
