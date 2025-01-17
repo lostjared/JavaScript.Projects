@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- saved from url=(0047)https://lostsidedead.biz/bin2cpp20/bin2cpp.html -->
-<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-  
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
   <title>bin2cpp20 - Web Interface</title>
   <style>
     /* Red-and-black theme */
@@ -103,7 +103,7 @@
     }
   </style>
 </head>
-<body data-new-gr-c-s-check-loaded="14.1217.0" data-gr-ext-installed="">
+<body>
 <header>
   <h1>bin2cpp20 - Web Interface</h1>
 </header>
@@ -113,21 +113,21 @@
   <div class="form-section">
     <label>1. Input Source:</label>
     <div class="input-field">
-      <input type="radio" name="inputType" id="inputTypeFile" value="file" checked="">
+      <input type="radio" name="inputType" id="inputTypeFile" value="file" checked />
       <label for="inputTypeFile">File</label>
-      <input type="radio" name="inputType" id="inputTypeText" value="text">
+      <input type="radio" name="inputType" id="inputTypeText" value="text" />
       <label for="inputTypeText">Multiline Text</label>
     </div>
   </div>
 
   <!-- File input section -->
-  <div id="fileInputSection" class="form-section" style="display: block;">
+  <div id="fileInputSection" class="form-section">
     <label for="fileInput">Select a File:</label>
-    <input type="file" id="fileInput" class="input-field">
+    <input type="file" id="fileInput" class="input-field" />
   </div>
 
   <!-- Text input section -->
-  <div id="textInputSection" class="form-section" style="display: none;">
+  <div id="textInputSection" class="form-section">
     <label for="textInput">Enter or Paste Your Text Below:</label>
     <textarea id="textInput" class="output-area" placeholder="Type or paste your text here..."></textarea>
   </div>
@@ -136,26 +136,26 @@
   <div class="form-section">
     <label>2. Conversion Options:</label>
     <div class="input-field">
-      <label for="variableName">Variable Name:</label><br>
-      <input type="text" id="variableName" placeholder="e.g. myData">
+      <label for="variableName">Variable Name:</label><br />
+      <input type="text" id="variableName" placeholder="e.g. myData" />
     </div>
 
     <!-- We will enforce that cExpr is mutually exclusive with asString, sorted, and unicode -->
     <div class="checkbox-field">
-      <input type="checkbox" id="cExpr">
+      <input type="checkbox" id="cExpr" />
       <label for="cExpr"><code>constexpr</code></label>
     </div>
 
     <div class="checkbox-field">
-      <input type="checkbox" id="asString">
+      <input type="checkbox" id="asString" />
       <label for="asString">String Output</label>
     </div>
     <div class="checkbox-field">
-      <input type="checkbox" id="sorted">
+      <input type="checkbox" id="sorted" />
       <label for="sorted">Sort (String Output Only)</label>
     </div>
     <div class="checkbox-field">
-      <input type="checkbox" id="unicode">
+      <input type="checkbox" id="unicode" />
       <label for="unicode">Unicode (String Output Only)</label>
     </div>
   </div>
@@ -169,17 +169,17 @@
   <!-- 4. Output -->
   <div class="form-section">
     <label for="outputText">4. Output:</label>
-    <textarea id="outputText" class="output-area" readonly=""></textarea>
+    <textarea id="outputText" class="output-area" readonly></textarea>
   </div>
 
   <div class="note">
     <strong>Note:</strong> All processing occurs locally in your browser.  
-    <br>
+    <br/>
   </div>
 </main>
 
 <footer>
-  <p>bin2cpp20 Web Interface — Version 1.1.1</p>
+  <p>bin2cpp20 Web Interface &mdash; Version 1.1.1</p>
 </footer>
 
 <script>
@@ -428,26 +428,5 @@
     handleCheckboxConstraints();
   });
 </script>
-
-
-</body><grammarly-desktop-integration data-grammarly-shadow-root="true"><template shadowrootmode="open"><style>
-      div.grammarly-desktop-integration {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        white-space: nowrap;
-        border: 0;
-        -moz-user-select: none;
-        -webkit-user-select: none;
-        -ms-user-select:none;
-        user-select:none;
-      }
-
-      div.grammarly-desktop-integration:before {
-        content: attr(data-content);
-      }
-    </style><div aria-label="grammarly-integration" role="group" tabindex="-1" class="grammarly-desktop-integration" data-content="{&quot;mode&quot;:&quot;full&quot;,&quot;isActive&quot;:true,&quot;isUserDisabled&quot;:false}"></div></template></grammarly-desktop-integration></html>
+</body>
+</html>
