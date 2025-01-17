@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<!-- saved from url=(0047)https://lostsidedead.biz/bin2cpp20/bin2cpp.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <title>bin2cpp20 - Web Interface</title>
+  <style>
+    /* Red-and-black theme */
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #000;
+      font-family: Arial, sans-serif;
+      color: #fff;
+    }
+
+    header, footer {
+      text-align: center;
+      background: #111;
+      padding: 1rem;
+    }
+
+    header h1 {
+      color: #e33;
+      margin: 0;
+    }
+
+    main {
+      margin: 2rem auto;
+      max-width: 900px;
+      background-color: #111;
+      border: 1px solid #e33;
+      border-radius: 4px;
+      padding: 1.5rem;
+    }
+
+    .form-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-section label {
+      font-weight: bold;
+      color: #e33;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    .input-field,
+    .checkbox-field {
+      margin-left: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .checkbox-field {
+      display: inline-block;
+      margin-right: 1rem;
+    }
+
+    .btn {
+      background: #e33;
+      color: #fff;
+      border: none;
+      font-size: 1rem;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      transition: background 0.3s;
+      margin-right: 0.5rem;
+      border-radius: 4px;
+    }
+
+    .btn:hover {
+      background: #c00;
+    }
+
+    .output-area {
+      width: 100%;
+      height: 250px;
+      border: 1px solid #e33;
+      background-color: #222;
+      color: #fff;
+      padding: 0.5rem;
+      border-radius: 4px;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 0.9rem;
+      resize: vertical;
+    }
+
+    footer p {
+      margin: 0;
+      font-size: 0.8rem;
+      color: #666;
+    }
+
+    .note {
+      font-size: 0.9rem;
+      color: #ccc;
+      margin-top: 1rem;
+    }
+
+    /* Hide by default; shown conditionally by JS */
+    #fileInputSection, 
+    #textInputSection {
+      display: none;
+    }
+  </style>
+</head>
+<body data-new-gr-c-s-check-loaded="14.1217.0" data-gr-ext-installed="">
+<header>
+  <h1>bin2cpp20 - Web Interface</h1>
+</header>
+
+<main>
+  <!-- 1. Choose input source: File or Text -->
+  <div class="form-section">
+    <label>1. Input Source:</label>
+    <div class="input-field">
+      <input type="radio" name="inputType" id="inputTypeFile" value="file" checked="">
+      <label for="inputTypeFile">File</label>
+      <input type="radio" name="inputType" id="inputTypeText" value="text">
+      <label for="inputTypeText">Multiline Text</label>
+    </div>
+  </div>
+
+  <!-- File input section -->
+  <div id="fileInputSection" class="form-section" style="display: block;">
+    <label for="fileInput">Select a File:</label>
+    <input type="file" id="fileInput" class="input-field">
+  </div>
+
+  <!-- Text input section -->
+  <div id="textInputSection" class="form-section" style="display: none;">
+    <label for="textInput">Enter or Paste Your Text Below:</label>
+    <textarea id="textInput" class="output-area" placeholder="Type or paste your text here..."></textarea>
+  </div>
+
+  <!-- 2. Options -->
+  <div class="form-section">
+    <label>2. Conversion Options:</label>
+    <div class="input-field">
+      <label for="variableName">Variable Name:</label><br>
+      <input type="text" id="variableName" placeholder="e.g. myData">
+    </div>
+
+    <!-- We will enforce that cExpr is mutually exclusive with asString, sorted, and unicode -->
+    <div class="checkbox-field">
+      <input type="checkbox" id="cExpr">
+      <label for="cExpr"><code>constexpr</code></label>
+    </div>
+
+    <div class="checkbox-field">
+      <input type="checkbox" id="asString">
+      <label for="asString">String Output</label>
+    </div>
+    <div class="checkbox-field">
+      <input type="checkbox" id="sorted">
+      <label for="sorted">Sort (String Output Only)</label>
+    </div>
+    <div class="checkbox-field">
+      <input type="checkbox" id="unicode">
+      <label for="unicode">Unicode (String Output Only)</label>
+    </div>
+  </div>
+
+  <!-- Generate & Copy: grouped in its own section with extra margin below -->
+  <div class="form-section" style="margin-bottom: 2rem;">
+    <button id="generateBtn" class="btn">3. Generate C++ Code</button>
+    <button id="copyBtn" class="btn">Copy to Clipboard</button>
+  </div>
+
+  <!-- 4. Output -->
+  <div class="form-section">
+    <label for="outputText">4. Output:</label>
+    <textarea id="outputText" class="output-area" readonly=""></textarea>
+  </div>
+
+  <div class="note">
+    <strong>Note:</strong> All processing occurs locally in your browser.  
+    <br>
+  </div>
+</main>
+
+<footer>
+  <p>bin2cpp20 Web Interface — Version 1.1.1</p>
+</footer>
+
+<script>
+  /*
+   * JavaScript Implementation of bin2cpp20 logic
+   * Replicates core functionality from the provided C++ program
+   */
+
+  // 1. Toggle between file input and text input sections
+  function toggleInputSections() {
+    const inputTypeFile = document.getElementById("inputTypeFile");
+    const fileInputSection = document.getElementById("fileInputSection");
+    const textInputSection = document.getElementById("textInputSection");
+
+    if (inputTypeFile.checked) {
+      fileInputSection.style.display = "block";
+      textInputSection.style.display = "none";
+    } else {
+      fileInputSection.style.display = "none";
+      textInputSection.style.display = "block";
+    }
+  }
+
+  // 2. Checkboxes: Ensure constexpr is only valid if asString, sorted, unicode are all off
+  function handleCheckboxConstraints() {
+    const cExpr = document.getElementById("cExpr");
+    const asString = document.getElementById("asString");
+    const sorted = document.getElementById("sorted");
+    const unicode = document.getElementById("unicode");
+
+    // If cExpr is checked, we disable asString, sorted, unicode
+    if (cExpr.checked) {
+      asString.checked = false;
+      sorted.checked = false;
+      unicode.checked = false;
+      asString.disabled = true;
+      sorted.disabled = true;
+      unicode.disabled = true;
+    } else {
+      // If asString, sorted, or unicode is checked, then cExpr is disabled
+      if (asString.checked || sorted.checked || unicode.checked) {
+        cExpr.checked = false;
+        cExpr.disabled = true;
+      } else {
+        cExpr.disabled = false;
+      }
+      asString.disabled = false;
+      sorted.disabled = false;
+      unicode.disabled = false;
+    }
+
+    // Re-check if asString or sorted or unicode is checked, in which case cExpr must be disabled
+    if (asString.checked || sorted.checked || unicode.checked) {
+      cExpr.checked = false;
+      cExpr.disabled = true;
+    }
+  }
+
+  // 3. Convert raw bytes to a C++ array declaration
+  function convertToArray(cExpr, name, data) {
+    const length = data.length;
+    const e_type = cExpr ? "constexpr" : "inline";
+    let output = `${e_type} std::array<unsigned char, ${length + 1}> ${name} {\n  `;
+
+    // Append each byte in hex
+    for (let i = 0; i < length; i++) {
+      let hexVal = data[i].toString(16).toUpperCase();
+      if (hexVal.length === 1) hexVal = "0" + hexVal; // ensure two digits
+      output += `0x${hexVal},`;
+      // add line breaks for readability
+      if ((i + 1) % 16 === 0) {
+        output += "\n  ";
+      }
+    }
+    // Add a final 0x0
+    output += "0x00\n};\n";
+
+    return output;
+  }
+
+  // 4. Safely escape string characters (quotes, backslashes)
+  function escapeString(line) {
+    // replicate convertString() from the C++ code
+    let temp = "";
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '\\' || ch === '"') {
+        temp += "\\" + ch;
+      } else if (ch === '\r') {
+        continue; // skip \r
+      } else {
+        temp += ch;
+      }
+    }
+    return temp;
+  }
+
+  // 5. Convert text content to a C++ string array
+  //    If sorted is true, lines are sorted alphabetically
+  //    If unicode is true, produce wstring
+  function convertToString(unicode, sorted, name, text) {
+    // Split lines
+    let lines = text.split("\n");
+
+    // Trim and remove empty lines
+    lines = lines.map(l => l.trim()).filter(l => l.length > 0);
+
+    if (sorted) {
+      lines.sort((a, b) => a.localeCompare(b));
+    }
+
+    const cType = unicode ? "std::wstring" : "std::string";
+    let output = `inline const ${cType} ${name}[] = {\n  `;
+
+    lines.forEach((line, idx) => {
+      const escaped = escapeString(line);
+      // Add L"" if unicode, else ""
+      if (unicode) {
+        output += `L"${escaped}"`;
+      } else {
+        output += `"${escaped}"`;
+      }
+      if (idx < lines.length - 1) {
+        output += ",";
+      }
+      output += "\n  ";
+    });
+
+    output += "};\n";
+    output += `inline unsigned long ${name}_length { ${lines.length} };\n`;
+
+    return output;
+  }
+
+  // 6. Validate C++ variable name with a simple regex
+  function isValidName(name) {
+    // must start with letter or underscore, then any alnum or underscore
+    const pattern = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+    return pattern.test(name);
+  }
+
+  // 7. Generate final code
+  async function generateCode() {
+    const inputTypeFile = document.getElementById("inputTypeFile");
+    const variableName = document.getElementById("variableName").value.trim();
+    const cExpr = document.getElementById("cExpr").checked;
+    const asString = document.getElementById("asString").checked;
+    const sorted = document.getElementById("sorted").checked;
+    const unicode = document.getElementById("unicode").checked;
+    const outputText = document.getElementById("outputText");
+
+    // Clear previous output
+    outputText.value = "";
+
+    // Basic checks
+    if (!variableName) {
+      alert("Please provide a variable name.");
+      return;
+    }
+    if (!isValidName(variableName)) {
+      alert("Invalid variable name. Must match [a-zA-Z_][a-zA-Z0-9_]*");
+      return;
+    }
+
+    let result = "";
+
+    if (inputTypeFile.checked) {
+      // File input mode
+      const fileInput = document.getElementById("fileInput");
+      if (!fileInput.files.length) {
+        alert("Please select a file.");
+        return;
+      }
+      // Read the file
+      const file = fileInput.files[0];
+      const arrayBuffer = await file.arrayBuffer();
+      const data = new Uint8Array(arrayBuffer);
+
+      if (asString) {
+        // We treat the file as text
+        const decoder = new TextDecoder();
+        const textContent = decoder.decode(data);
+
+        // The C++ code prefix used for string was "str_"
+        const nameForString = "str_" + variableName;
+        result = convertToString(unicode, sorted, nameForString, textContent);
+      } else {
+        // We treat the file as binary -> array
+        // The C++ code prefix used for array was "bin_"
+        const nameForArray = "bin_" + variableName + "_arr";
+        result = convertToArray(cExpr, nameForArray, data);
+      }
+    } else {
+      // Text input mode
+      const textContent = document.getElementById("textInput").value;
+
+      if (asString) {
+        // Convert multiline text to string array
+        const nameForString = "str_" + variableName;
+        result = convertToString(unicode, sorted, nameForString, textContent);
+      } else {
+        // Convert multiline text to binary array
+        const data = new TextEncoder().encode(textContent);
+        const nameForArray = "bin_" + variableName + "_arr";
+        result = convertToArray(cExpr, nameForArray, data);
+      }
+    }
+
+    // Display result
+    outputText.value = result;
+  }
+
+  // 8. Copy output to clipboard
+  async function copyOutput() {
+    const outputText = document.getElementById("outputText");
+    const code = outputText.value.trim();
+    if (!code) {
+      alert("Nothing to copy!");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(code);
+      alert("Output copied to clipboard!");
+    } catch (err) {
+      alert("Failed to copy to clipboard.");
+      console.error(err);
+    }
+  }
+
+  // Event listeners
+  document.getElementById("inputTypeFile").addEventListener("change", toggleInputSections);
+  document.getElementById("inputTypeText").addEventListener("change", toggleInputSections);
+
+  document.getElementById("cExpr").addEventListener("change", handleCheckboxConstraints);
+  document.getElementById("asString").addEventListener("change", handleCheckboxConstraints);
+  document.getElementById("sorted").addEventListener("change", handleCheckboxConstraints);
+  document.getElementById("unicode").addEventListener("change", handleCheckboxConstraints);
+
+  document.getElementById("generateBtn").addEventListener("click", generateCode);
+  document.getElementById("copyBtn").addEventListener("click", copyOutput);
+
+  // Initialize view on page load
+  window.addEventListener("DOMContentLoaded", () => {
+    toggleInputSections();
+    handleCheckboxConstraints();
+  });
+</script>
+
+
+</body><grammarly-desktop-integration data-grammarly-shadow-root="true"><template shadowrootmode="open"><style>
+      div.grammarly-desktop-integration {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select:none;
+        user-select:none;
+      }
+
+      div.grammarly-desktop-integration:before {
+        content: attr(data-content);
+      }
+    </style><div aria-label="grammarly-integration" role="group" tabindex="-1" class="grammarly-desktop-integration" data-content="{&quot;mode&quot;:&quot;full&quot;,&quot;isActive&quot;:true,&quot;isUserDisabled&quot;:false}"></div></template></grammarly-desktop-integration></html>
