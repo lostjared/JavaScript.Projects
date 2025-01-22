@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 	scePowerSetClockFrequency(333, 333, 166); //# overclocked
 #endif
 
-	if(mxhwnd.CreateMasterX("MasterX",640,480,COLOR_DEFAULT,event,0,0,0))
+	if(mxhwnd.CreateMasterX("SuperMaster",960,720,COLOR_DEFAULT,event,0,0,0))
 	{
 		init();
 		mxhwnd.InitLoop(render);
@@ -93,8 +93,6 @@ long  event(unsigned int hwnd,unsigned int msg,unsigned int wParam,unsigned int 
 
 void render(int  screen)
 {
-	SDL_Delay(40);
-
 	switch(screen)
 	{
 	case ID_INTRO:
@@ -113,7 +111,7 @@ void render(int  screen)
 		launch.update();
 		break;
 	}
-	
+	SDL_Delay(1000/30);	
 }
 
 inline void GetPointFromPos(int pos,int& x, int& y)
@@ -179,14 +177,7 @@ void newgame()
 
 void load_level(char* levelstr)
 {
-
-#ifdef FOR_WASM
-	char buffer[4096];
-	sprintf(buffer, "/assets/%s", levelstr);
-	game.loadlevel(buffer);
-#else
 	game.loadlevel(levelstr);
-#endif
 }
 
 

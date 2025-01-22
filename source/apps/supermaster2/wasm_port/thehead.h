@@ -44,6 +44,7 @@ public:
 	virtual void load()
 	{
 		mxhwnd.LoadGraphic(&logo,"logo.bmp");
+		logo.SetColorKey(0x1);
 		mxhwnd.LoadSound(&sintro,"open.wav");
 		play = false;
 	}
@@ -1384,9 +1385,16 @@ public:
 		
 	}
 	
-	inline void loadlevel(char* filename)
+	inline void loadlevel(const char* filename)
 	{
-		ifstream fin(filename,ios::binary);
+
+		char buffer[4096];
+#ifdef __EMSCRIPTEN__
+		snprintf(buffer, 4095, "/assets/%s", filename);
+#else 
+		snprintf(buffer, 4095, "%s", filename);
+#endif
+		ifstream fin(buffer,ios::binary);
 		fin.read((char*)&level,sizeof(level));
 		fin.close();
 		for(i = 0; i < 50; i++)

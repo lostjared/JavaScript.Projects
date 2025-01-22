@@ -51,7 +51,7 @@ int littleToBig(int i)
 
 struct SDL_Font *SDL_InitFont(const char *src) {
 
-	#ifdef FOR_WASM
+	#ifdef __EMSCRIPTEN__
 	char buffer[4096];
 	sprintf(buffer, "/assets/%s", src);
 	FILE *fptr = fopen(buffer, "rb");
@@ -63,7 +63,6 @@ struct SDL_Font *SDL_InitFont(const char *src) {
 	int i,z,p;
 	if(!fptr) return 0;
 	int mode = 0;
-
 
 	fnt = (struct SDL_Font*)malloc(sizeof(struct SDL_Font));
 

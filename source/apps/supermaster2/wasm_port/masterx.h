@@ -71,11 +71,11 @@ public:
 		this->scr = scr;
 	}
 
-	 void printtext(char *str, int x, int y) {
+	 void printtext(const char *str, int x, int y) {
 		SDL_PrintText(scr->front, font, x,y, text, str);
 	}
 
-	 void sprinttext(int x, int y, char *str, ...) {
+	 void sprinttext(int x, int y, const char *str, ...) {
 		char text[5000];
 		va_list list;
 		va_start(list, str);
@@ -84,11 +84,11 @@ public:
 		printtext(text, x,y);
 	}
 
-	 void printtextrect(char *str, int x, int y, int w, int h) {
+	 void printtextrect(const char *str, int x, int y, int w, int h) {
 		printtext(str, x,y);
 	}
 
-	 void printtextunderline(char *str, int x, int y) {
+	 void printtextunderline(const char *str, int x, int y) {
 		printtext(str, x,y);
 	}
 
@@ -128,7 +128,7 @@ public:
 		this->scr = scr;
 		color_key = 0;
 	}
-	 bool LoadGraphic(char* filename) {
+	 bool LoadGraphic(const char* filename) {
 
 #ifdef FOR_WASM
 		char buffer[4096];
@@ -156,7 +156,7 @@ public:
 		h = surf->h;
 		return true;
 	}
-	 bool LoadGraphic(char* filename,MasterScreen* scr) {
+	 bool LoadGraphic(const char* filename,MasterScreen* scr) {
 		init(scr);
 		this->LoadGraphic(filename);
 		w = surf->w;
@@ -171,17 +171,19 @@ public:
 	}
 	 void DisplayGraphic(int x, int y) {
 		if(surf) {
-		SDL_Rect rc = { x,y,surf->w, surf->h };
-		SDL_SetColorKey(surf, SDL_TRUE, SDL_MapRGB(surf->format, 255, 255, 255));
-		SDL_BlitSurface(surf, 0, scr->front, &rc);
+			SDL_Rect rc = { x,y,surf->w, surf->h };
+			if(color_key != 0x1)
+				SDL_SetColorKey(surf, SDL_TRUE, SDL_MapRGB(surf->format, 255, 255, 255));
+			SDL_BlitSurface(surf, 0, scr->front, &rc);
 		}
 	}
 	 void DisplayGraphicEx(int bx, int by, int bw, int bh,int image_x, int image_y) {
 		if(surf) {
-		SDL_Rect rc = { bx,by,bw,bh };
-		SDL_Rect rc2 = { image_x, image_y, bw, bh };
-		SDL_SetColorKey(surf, SDL_TRUE, SDL_MapRGB(surf->format, 255, 255, 255));
-		SDL_BlitSurface(surf, &rc, scr->front, &rc2);
+			SDL_Rect rc = { bx,by,bw,bh };
+			SDL_Rect rc2 = { image_x, image_y, bw, bh };
+			if(color_key != 0x1)
+				SDL_SetColorKey(surf, SDL_TRUE, SDL_MapRGB(surf->format, 255, 255, 255));
+			SDL_BlitSurface(surf, &rc, scr->front, &rc2);
 		}
 	}
 	~MasterGraphic() {  if(surf) SDL_FreeSurface(surf); surf = 0; }
@@ -206,6 +208,7 @@ public:
 	 void Play() {
 	}
 	 bool PlayStatus() {
+		return true;
 	}
 	 void Release() {
 	}
@@ -316,16 +319,16 @@ public:
 		this->full_flag = flag;
 	}
 
-	 bool CreateMasterX(char* mytitle,int width,int height,DisplayColor color,long (*event)(unsigned int, unsigned int, unsigned int, unsigned int),int instance,int icon,int cursor) {
+	 bool CreateMasterX(const char* mytitle,int width,int height,DisplayColor color,long (*event)(unsigned int, unsigned int, unsigned int, unsigned int),int instance,int icon,int cursor) {
 		wnd_instance = this;
 		SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK);
 		sdl_window = SDL_CreateWindow("SuperMaster2",
                                           SDL_WINDOWPOS_UNDEFINED,
                                           SDL_WINDOWPOS_UNDEFINED,
-                                          640, 480,
+                                          width, height,
                                           SDL_WINDOW_SHOWN);
-		this->scr.front = SDL_GetWindowSurface(sdl_window);
-		front = this->scr.front;
+		this->scr.front = create_buffer(640, 480, SDL_GetWindowSurface(sdl_window));
+		front = scr.front;
 		this->event = event;
 		text.init(&scr);
 		paint.init(&scr);
@@ -334,6 +337,8 @@ public:
 			SDL_FillRect(scr.front, 0, 0);
 			text.settextcolor(RGB(255,255,255));
 			text.printtext("Loading...", 0,0);
+			SDL_BlitScaled(scr.front, 0, SDL_GetWindowSurface(sdl_window), 0);
+			//SDL_BlitScaled(scr.front, 0, SDL_GetWindowSurface(sdl_window), 0);
 			SDL_UpdateWindowSurface(sdl_window);
 			return true;
 		}
@@ -356,6 +361,11 @@ public:
 						break;
 					case SDL_KEYDOWN:
 						{
+							if(e.key.keysym.sym == SDLK_ESCAPE) {
+								alive = false;
+								return;
+							}
+
 							this->event(0, WM_KEYDOWN, e.key.keysym.sym, 0);
 						}
 						break;
@@ -447,6 +457,9 @@ public:
 
 			SDL_FillRect(scr.front, 0, 0);
 			render(mscr);
+			SDL_Rect rc1 = { 0, 0, 640, 480 };
+			SDL_Rect rc2 = { 0, 0, 960, 720 };
+			SDL_BlitScaled(scr.front, 0, SDL_GetWindowSurface(sdl_window), 0);
 			SDL_UpdateWindowSurface(sdl_window);
 	}
 
@@ -596,8 +609,8 @@ public:
 		return false;
 	}
 
-	SDL_Surface *create_buffer(int w, int h) {
-				return SDL_CreateRGBSurface(SDL_SWSURFACE, w,h, scr.front->format->BitsPerPixel,scr.front->format->Rmask, scr.front->format->Gmask, scr.front->format->Bmask, scr.front->format->Amask);
+	SDL_Surface *create_buffer(int w, int h, SDL_Surface *front) {
+		return SDL_CreateRGBSurface(SDL_SWSURFACE, w,h, front->format->BitsPerPixel,front->format->Rmask, front->format->Gmask, front->format->Bmask, front->format->Amask);
 	}
 
 	 void InitTimer(int id, int interval) {
