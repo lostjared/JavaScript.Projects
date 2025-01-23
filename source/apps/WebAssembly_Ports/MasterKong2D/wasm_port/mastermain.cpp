@@ -138,8 +138,13 @@ void update(MASTERSCREEN screen)
 // load the level
 void loadlevel(char* levelstr)
 {
+
 	char buffer[4096];
-	sprintf(buffer, "/assets/%s", levelstr);
+#ifdef __EMSCRIPTEN__
+	snprintf(buffer, 4095, "/assets/%s", levelstr);
+#else
+	snprintf(buffer, 4095, "%s", levelstr);
+#endif
 
 	std::fstream fin;
 	fin.open(buffer, std::ios::in | std::ios::binary);

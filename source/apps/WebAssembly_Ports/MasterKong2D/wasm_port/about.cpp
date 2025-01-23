@@ -26,7 +26,7 @@ void About::ondraw()
 	
 	mxhwnd.text.settextcolor(SDL_MapRGB(front->format,0,200,0));
 	mxhwnd.text.printtext( " planetsourcecode.com, best free code site on the net ",100,150);
-	mxhwnd.text.printtext(" lostsidedead,chris,allen,vulcan,derick,Jean-Ren� B�dard  ",100,175);
+	mxhwnd.text.printtext(" lostsidedead,chris,allen,vulcan,derick,Jean  ",100,175);
 	mxhwnd.text.printtext("issac, john, source, bonk, spine, xeek, micheal,joseph cohen, nukem ",100,200);
 	mxhwnd.text.printtext(" and everyone else that I know or have met",100,225);
 

@@ -29,7 +29,7 @@ extern int MasterMain(char *line);
 
 extern SDL_Surface *front;
 
-
+enum { ID_INTRO ,ID_START, ID_OPTIONS, ID_GAME, ID_GAMEOVER, ID_ABOUT, ID_GINTRO, ID_LAUNCH };
 
 class MasterScreen {
 public:
@@ -127,7 +127,7 @@ public:
 	}
 	 bool LoadGraphic(char* filename) {
 
-#ifdef FOR_WASM
+#ifdef __EMSCRIPTEN__
 		char buffer[4096];
 		sprintf(buffer, "/assets/%s", filename);
 		surf = SDL_LoadBMP(buffer);
@@ -393,7 +393,7 @@ public:
 	unsigned int activeapp;
 	bool stretch;
 	MasterXHWND() { wnd_instance = this; full_flag = true; }
-	~MasterXHWND() { SDL_DestroyWindow(sdl_window); SDL_Quit(); }
+	~MasterXHWND() { if(scr.front) SDL_FreeSurface(scr.front); SDL_DestroyWindow(sdl_window); SDL_Quit(); }
 	void setfullflag(bool flag) {
 		this->full_flag = flag;
 	}
@@ -402,20 +402,22 @@ public:
 		wnd_instance = this;
 		SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK);
 		sdl_window = SDL_CreateWindow("MasterKong",
-                                          SDL_WINDOWPOS_UNDEFINED,
-                                          SDL_WINDOWPOS_UNDEFINED,
-                                          640, 480,
+                                          SDL_WINDOWPOS_CENTERED,
+                                          SDL_WINDOWPOS_CENTERED,
+                                          960, 720,
                                           SDL_WINDOW_SHOWN);
-		this->scr.front = SDL_GetWindowSurface(sdl_window);
-		front = this->scr.front;
+		this->scr.front = create_buffer(640, 480, SDL_GetWindowSurface(sdl_window));
+		front = scr.front;
 		this->event = event;
 		text.init(&scr);
 		paint.init(&scr);
 		if(scr.front) {
 
 			SDL_FillRect(scr.front, 0, 0);
-			text.settextcolor(SDL_MapRGB(front->format,255,255,255));
+			text.settextcolor(0xFFFFFFFF);
 			text.printtext("Loading...", 0,0);
+			SDL_BlitScaled(scr.front, 0, SDL_GetWindowSurface(sdl_window), 0);
+			//SDL_BlitScaled(scr.front, 0, SDL_GetWindowSurface(sdl_window), 0);
 			SDL_UpdateWindowSurface(sdl_window);
 			return true;
 		}
@@ -526,9 +528,9 @@ public:
 				}
 
 			}
-
 			SDL_FillRect(scr.front, 0, 0);
 			render(mscr);
+			SDL_BlitScaled(scr.front, 0, SDL_GetWindowSurface(sdl_window), 0);
 			SDL_UpdateWindowSurface(sdl_window);
 	}
 
@@ -663,8 +665,8 @@ public:
 		return false;
 	}
 
-	SDL_Surface *create_buffer(int w, int h) {
-				return SDL_CreateRGBSurface(SDL_SWSURFACE, w,h, scr.front->format->BitsPerPixel,scr.front->format->Rmask, scr.front->format->Gmask, scr.front->format->Bmask, scr.front->format->Amask);
+	SDL_Surface *create_buffer(int w, int h, SDL_Surface *front) {
+				return SDL_CreateRGBSurface(SDL_SWSURFACE, w,h, front->format->BitsPerPixel,front->format->Rmask, front->format->Gmask, front->format->Bmask, front->format->Amask);
 	}
 
 	 void InitTimer(int id, int interval) {

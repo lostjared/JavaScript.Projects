@@ -30,7 +30,7 @@ void thegameover(bool win);
 
 
 // enumerated constants
-enum { ID_INTRO ,ID_START, ID_OPTIONS, ID_GAME, ID_GAMEOVER, ID_ABOUT, ID_GINTRO };
+
 
 
 // structure for the games player
