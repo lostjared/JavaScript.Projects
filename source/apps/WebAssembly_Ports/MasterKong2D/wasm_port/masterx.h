@@ -393,7 +393,7 @@ public:
 	unsigned int activeapp;
 	bool stretch;
 	MasterXHWND() { wnd_instance = this; full_flag = true; }
-	~MasterXHWND() { if(scr.front) SDL_FreeSurface(scr.front); SDL_DestroyWindow(sdl_window); SDL_Quit(); }
+	~MasterXHWND() {  SDL_DestroyWindow(sdl_window); SDL_Quit(); }
 	void setfullflag(bool flag) {
 		this->full_flag = flag;
 	}
