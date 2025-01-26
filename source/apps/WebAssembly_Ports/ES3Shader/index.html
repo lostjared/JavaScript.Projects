@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shaader</title>
+    <style>
+        body {
+            background-color: black;
+            color: red;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+        }
+        textarea {
+            width: 500px;
+            height: 150px;
+            background-color: black;
+            color: red;
+            border: 1px solid red;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: red;
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: darkred;
+        }
+    </style>
+    
+        <script>
+            let mainWindow;
+            var Module = {
+                onRuntimeInitialized: function() {
+                mainWindow = new Module.MainWindow("Title", 960, 720);
+                const canvas = document.getElementById('canvas');
+                const textarea = document.querySelector('textarea');
+                const fileInput = document.getElementById('fileInput');
+                const btn = document.getElementById('btn');
+   
+                fileInput.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const text = event.target.result;
+                        textarea.value = text;
+                    };
+                    reader.readAsText(file);
+                });
+
+                btn.addEventListener('click', (e) => {
+                    mainWindow.loadCode(textarea.value);
+                });
+            }
+        };
+        </script>
+        <script src="CVShader.js"></script>
+</head>
+<body>
+    <div class="container">
+        
+        <div class="container">
+            <textarea id="textarea" placeholder="Enter your text here..." tabindex="1"></textarea><br>
+            <button id="btn">Run Code</button><br><br>
+            <input type="file" id="fileInput" accept=".txt,.glsl,.frag" style="color: red;" /><br><br><br>
+            <canvas id="canvas" width="960" height="720" tabindex="-1"></canvas>
+            <br>
+        </div>
+
+    </div>
+</body>
+</html>
