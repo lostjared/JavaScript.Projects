@@ -276,17 +276,19 @@ EMSCRIPTEN_BINDINGS(shader_bindings) {
         outFile.close();
         std::cout << "Saved image as 'image.png'.\n";
         SDL_Surface *surface = png::LoadPNG("image.png");
-        int imgWidth = surface->w;
-        int imgHeight = surface->h;
-        main_w->setWindowSize(imgWidth, imgHeight);
-        emscripten_set_canvas_element_size("#canvas", imgWidth, imgHeight);
-        int canvasWidth = imgWidth, canvasHeight = imgHeight;
-        emscripten_get_canvas_element_size("#canvas", &canvasWidth, &canvasHeight);
-        new_width = canvasWidth;
-        new_height = canvasHeight;
-        sprite.initSize(canvasWidth, canvasHeight);
-        sprite.loadTexture(shader_programs[shader_index], "image.png", 0, 0, canvasWidth, canvasHeight);
-        SDL_FreeSurface(surface);
+        if(surface) {
+            int imgWidth = surface->w;
+            int imgHeight = surface->h;
+            main_w->setWindowSize(imgWidth, imgHeight);
+            emscripten_set_canvas_element_size("#canvas", imgWidth, imgHeight);
+            int canvasWidth = imgWidth, canvasHeight = imgHeight;
+            emscripten_get_canvas_element_size("#canvas", &canvasWidth, &canvasHeight);
+            new_width = canvasWidth;
+            new_height = canvasHeight;
+            sprite.initSize(canvasWidth, canvasHeight);
+            sprite.loadTexture(shader_programs[shader_index], "image.png", 0, 0, canvasWidth, canvasHeight);
+            SDL_FreeSurface(surface);
+        }
     }
 
     void loadImageJPG(const std::vector<uint8_t>& imageData) {
@@ -294,18 +296,20 @@ EMSCRIPTEN_BINDINGS(shader_bindings) {
         outFile.write(reinterpret_cast<const char*>(imageData.data()), imageData.size());
         outFile.close();
         SDL_Surface *surface = IMG_Load("image.jpg");
-        int imgWidth = surface->w;
-        int imgHeight = surface->h;
-        main_w->setWindowSize(imgWidth, imgHeight);
-        emscripten_set_canvas_element_size("#canvas", imgWidth, imgHeight);
-        int canvasWidth = imgWidth, canvasHeight = imgHeight;
-        emscripten_get_canvas_element_size("#canvas", &canvasWidth, &canvasHeight);
-        new_width = canvasWidth;
-        new_height = canvasHeight;
-        sprite.initSize(canvasWidth, canvasHeight);
-        GLuint text = gl::createTexture(surface, true);
-        sprite.initWithTexture(shader_programs[shader_index], text, 0, 0, canvasWidth, canvasHeight);
-        SDL_FreeSurface(surface);
+        if(surface) {
+            int imgWidth = surface->w;
+            int imgHeight = surface->h;
+            main_w->setWindowSize(imgWidth, imgHeight);
+            emscripten_set_canvas_element_size("#canvas", imgWidth, imgHeight);
+            int canvasWidth = imgWidth, canvasHeight = imgHeight;
+            emscripten_get_canvas_element_size("#canvas", &canvasWidth, &canvasHeight);
+            new_width = canvasWidth;
+            new_height = canvasHeight;
+            sprite.initSize(canvasWidth, canvasHeight);
+            GLuint text = gl::createTexture(surface, true);
+            sprite.initWithTexture(shader_programs[shader_index], text, 0, 0, canvasWidth, canvasHeight);
+            SDL_FreeSurface(surface);
+        }
     }
 
 EMSCRIPTEN_BINDINGS(image_loader) {
