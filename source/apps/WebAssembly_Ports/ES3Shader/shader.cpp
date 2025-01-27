@@ -20,7 +20,9 @@ printf("OpenGL Error: %d at %s:%d\n", err, __FILE__, __LINE__); }
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
-
+#ifdef __EMSCRIPTEN__
+#include "SDL_image.h"
+#endif
 static const char *vSource = R"(#version 300 es
 precision highp float;
 layout (location = 0) in vec3 aPos;
@@ -68,12 +70,14 @@ void main() {
 
 )";
 
+std::vector<gl::ShaderProgram *> shader_programs;
+gl::GLSprite sprite;
+size_t shader_index = 0;
+
 class CVShader : public gl::GLObject {
     static CVShader* active_instance;
     std::string prev_text;
     float animation_time = 0.0f; 
-    std::vector<gl::ShaderProgram *> shader_programs;
-    size_t index = 0;
 public:
     static CVShader* getInstance() { return active_instance; }
     
@@ -98,7 +102,7 @@ public:
        }
        texture = gl::loadTexture("/data/bg.png");
        sprite.initSize(win->w,  win->h);
-       sprite.initWithTexture(shader_programs[index], texture, 0.0f, 0.0f, win->w, win->h);
+       sprite.initWithTexture(shader_programs[shader_index], texture, 0.0f, 0.0f, win->w, win->h);
        CHECK_GL_ERROR();
        std::cout << "Initial load - Vector size: " << shader_programs.size() << "\n";
        CHECK_GL_ERROR();    
@@ -110,11 +114,11 @@ public:
         float deltaTime = (currentTime - lastUpdateTime) / 1000.0f; 
         lastUpdateTime = currentTime;
         animation_time += deltaTime; 
-        sprite.setShader(shader_programs[index]);
-        shader_programs[index]->useProgram();
-        GLint location1 = glGetUniformLocation(shader_programs[index]->id(), "time_f");
-        GLint location2 = glGetUniformLocation(shader_programs[index]->id(), "iResolution");
-        GLint location3 = glGetUniformLocation(shader_programs[index]->id(), "alpha");
+        sprite.setShader(shader_programs[shader_index]);
+        shader_programs[shader_index]->useProgram();
+        GLint location1 = glGetUniformLocation(shader_programs[shader_index]->id(), "time_f");
+        GLint location2 = glGetUniformLocation(shader_programs[shader_index]->id(), "iResolution");
+        GLint location3 = glGetUniformLocation(shader_programs[shader_index]->id(), "alpha");
         if(location2 != -1) {
             glUniform2f(location2, w, h);
         }
@@ -150,9 +154,9 @@ public:
             return false;
         }
         shader_programs.push_back(shader_program);
-        index = shader_programs.size() - 1; 
+        shader_index = shader_programs.size() - 1; 
         std::cout << "After push - Vector size: " << shader_programs.size() 
-                  << " Index: " << index 
+                  << " Index: " << shader_index 
                   << " Program ID: " << shader_program->id() << "\n";
         return true;
     }
@@ -188,11 +192,12 @@ public:
     
 private:
     Uint32 lastUpdateTime = SDL_GetTicks();
-    gl::GLSprite sprite;
-
 };
 
+int new_width = 966, new_height = 720;
+
 CVShader* CVShader::active_instance = nullptr;
+
 
 class MainWindow : public gl::GLWindow {
 public:
@@ -217,7 +222,7 @@ public:
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST);
-        glViewport(0, 0, w, h);
+        glViewport(0, 0, new_width, new_height);
         shader_obj->draw(this);
         swap();
         delay();
@@ -257,9 +262,56 @@ int main(int argc, char **argv) {
 #include <emscripten/bind.h>
 using namespace emscripten;
 
+
 EMSCRIPTEN_BINDINGS(shader_bindings) {
     class_<MainWindow>("MainWindow")
         .constructor<std::string, int, int>()
         .function("loadCode", &MainWindow::loadCode);
 }
+ 
+    void loadImage(const std::vector<uint8_t>& imageData) {
+        std::cout << "Received image data of size: " << imageData.size() << " bytes\n";
+        std::ofstream outFile("image.png", std::ios::binary);
+        outFile.write(reinterpret_cast<const char*>(imageData.data()), imageData.size());
+        outFile.close();
+        std::cout << "Saved image as 'image.png'.\n";
+        SDL_Surface *surface = png::LoadPNG("image.png");
+        int imgWidth = surface->w;
+        int imgHeight = surface->h;
+        main_w->setWindowSize(imgWidth, imgHeight);
+        emscripten_set_canvas_element_size("#canvas", imgWidth, imgHeight);
+        int canvasWidth = imgWidth, canvasHeight = imgHeight;
+        emscripten_get_canvas_element_size("#canvas", &canvasWidth, &canvasHeight);
+        new_width = canvasWidth;
+        new_height = canvasHeight;
+        sprite.initSize(canvasWidth, canvasHeight);
+        sprite.loadTexture(shader_programs[shader_index], "image.png", 0, 0, canvasWidth, canvasHeight);
+        SDL_FreeSurface(surface);
+    }
+
+    void loadImageJPG(const std::vector<uint8_t>& imageData) {
+        std::ofstream outFile("image.jpg", std::ios::binary);
+        outFile.write(reinterpret_cast<const char*>(imageData.data()), imageData.size());
+        outFile.close();
+        SDL_Surface *surface = IMG_Load("image.jpg");
+        int imgWidth = surface->w;
+        int imgHeight = surface->h;
+        main_w->setWindowSize(imgWidth, imgHeight);
+        emscripten_set_canvas_element_size("#canvas", imgWidth, imgHeight);
+        int canvasWidth = imgWidth, canvasHeight = imgHeight;
+        emscripten_get_canvas_element_size("#canvas", &canvasWidth, &canvasHeight);
+        new_width = canvasWidth;
+        new_height = canvasHeight;
+        sprite.initSize(canvasWidth, canvasHeight);
+        GLuint text = gl::createTexture(surface, true);
+        sprite.initWithTexture(shader_programs[shader_index], text, 0, 0, canvasWidth, canvasHeight);
+        SDL_FreeSurface(surface);
+    }
+
+EMSCRIPTEN_BINDINGS(image_loader) {
+    emscripten::function("loadImage", &loadImage);
+    emscripten::function("loadImageJPG",  &loadImageJPG);
+    emscripten::register_vector<uint8_t>("VectorU8");
+}
+
 #endif

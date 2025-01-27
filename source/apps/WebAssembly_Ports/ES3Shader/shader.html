@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="description" content="Homebrew Glitch Art Generator Shaders Demo">
+  <meta name="keywords" content="Compiler, Interpreter, Open Source, Programming, Accessibility, Cross-Platform Development, Software, Collaboration">
+  <title>My Journey through Code - OpenGL ES 3 Shader Demo</title>
+  <style>
+    /* Reset some default browser styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* Body Styling */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #000;
+      color: #fff;
+      line-height: 1.6;
+    }
+
+    /* Header Bar */
+    header {
+      background-color: #cc0000; /* Bright red header */
+      padding: 20px;
+      text-align: center;
+    }
+
+    header h1 {
+      color: #ffffff;
+      font-size: 2em;
+    }
+
+    /* Container for Main Content */
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background-color: #111; /* A slightly different black to add contrast */
+      border-radius: 5px;
+    }
+
+    /* Blog Entry Title */
+    .entry-title {
+      color: #ff4242; /* Another shade of red to differentiate */
+      margin-bottom: 10px;
+      font-size: 1.8em;
+    }
+
+    /* Blog Entry Content Area */
+    .entry-content {
+      background-color: #222; /* Dark gray to distinguish from the container */
+      padding: 15px;
+      border-radius: 4px;
+    }
+
+    .entry-content p {
+      margin-bottom: 10px;
+    }
+
+    .button {
+      display: inline-block;
+      background-color: #cc0000; /* Button background color */
+      color: #fff;               /* Text color */
+      padding: 10px 20px;        /* Button padding */
+      text-decoration: none;     /* Remove link underline */
+      border-radius: 4px;        /* Rounded corners */
+      font-weight: bold;         /* Bold text */
+      margin-right: 10px;        /* Spacing between buttons */
+      transition: background-color 0.3s ease;
+    }
+
+    .yt-frame {
+        text-align: center;
+    }
+   
+     .button:hover {
+      background-color: #a30000;  /* Darken on hover */
+    }
+
+    img {
+    width: 100%;
+    height: auto;
+    }
+
+    /* Optional: Style any links in your blog */
+    a {
+      color: #ffffff;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    pre {
+            background-color: black;
+            padding: 15px;
+            border-radius: 15px;
+            border: 1px solid #ddd;
+            overflow-x:auto;
+            color: lime;
+        }
+        code {
+            font-family: monospace;
+        }
+    
+    /* Add new styles for shader interface */
+    textarea {
+        width: 100%;
+        height: 150px;
+        background-color: #1a1a1a;
+        color: #ff4242;
+        border: 1px solid #333;
+        padding: 10px;
+        margin-bottom: 20px;
+        font-family: monospace;
+    }
+
+    #canvas {
+        width: 100%;
+        height: auto;
+        border: 1px solid #333;
+        margin: 20px 0;
+    }
+
+    #btn {
+        background-color: #cc0000;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        cursor: pointer;
+        border-radius: 4px;
+    }
+
+    #btn:hover {
+        background-color: #a30000;
+    }
+
+    #fileInput {
+        margin: 10px 0;
+        color: #ff4242;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header>
+    <h1><a href="/blog/">My Journey through Code</a></h1>
+  </header>
+
+  <!-- Main Content Container -->
+  <div class="container">
+    <h2 class="entry-title">OpenGL ES 3 Shader Demo</h2>
+    <!-- Content Section (Editable) -->
+    <div class="entry-content"zz>
+      <textarea id="textarea" placeholder="When you select a GLSL file it will appear here. Press Run to Execute it. You can also select an image"></textarea>
+      <div style="text-align: center;"><button id="btn">Run Shader</button>
+      <a href="esshader.zip">Download Examples</a><br>Shader: <input type="file" id="fileInput" accept=".txt,.glsl,.frag"/> Image: <input type="file" id="fileInput2" accept=".png,.jpg"/><br>
+      <canvas id="canvas" width="960" height="720" tabindex="-1"></canvas></div>
+    </div>
+  </div>
+
+  <script>
+    let mainWindow;
+    var Module = {
+      onRuntimeInitialized: function() {
+        mainWindow = new Module.MainWindow("Title", 960, 720);
+        const canvas = document.getElementById('canvas');
+        const textarea = document.querySelector('textarea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInput2 = document.getElementById('fileInput2');
+        const btn = document.getElementById('btn');
+
+        fileInput.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const text = event.target.result;
+            textarea.value = text;
+          };
+          reader.readAsText(file);
+        });
+
+        btn.addEventListener('click', (e) => {
+          mainWindow.loadCode(textarea.value);
+        });
+
+        fileInput2.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (!file) {
+                    console.log("No file selected.");
+                    return;
+                }
+
+                console.log(`Selected file: ${file.name}`);
+                const fileName = file.name.toLowerCase();
+                const isPNG = fileName.endsWith('.png');
+                const isJPG = fileName.endsWith('.jpg') || fileName.endsWith('.jpeg');
+
+                if (!isPNG && !isJPG) {
+                    console.error("Unsupported file format. Please select a PNG or JPG file.");
+                    return;
+                }
+
+                const reader = new FileReader();
+
+                reader.onload = (e) => {
+                    const arrayBuffer = e.target.result;
+                    const byteArray = new Uint8Array(arrayBuffer);
+                    console.log(`File size: ${byteArray.length} bytes`);
+                    const dataVector = new Module['VectorU8']();
+                    for (let i = 0; i < byteArray.length; i++) {
+                        dataVector.push_back(byteArray[i]);
+                    }
+
+                    if (isPNG) {
+                        Module.loadImage(dataVector);
+                    } else if (isJPG) {
+                        Module.loadImageJPG(dataVector);
+                    }
+
+                    dataVector.delete();
+                };
+                reader.onerror = (e) => {
+                    console.error("Error reading file:", e);
+                };
+                reader.readAsArrayBuffer(file);
+            });
+      }
+    };
+  </script>
+  <script src="CVShader.js?v=1.01"></script>
+</body>
+</html>
