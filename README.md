@@ -19,6 +19,7 @@ Instead of having a repo for each of these new mini-projects, I decided to put t
 - **Snake.JavaScript**
 - **Matrix Emulator**
 - **code2text**
+- **Resize Image**
 - **intbuilder**
 - **in2rs**
 - **mad**
