@@ -5,52 +5,124 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Mobile Image Resizer</title>
   <style>
+    /* Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
       font-family: Arial, sans-serif;
+      background-color: #000;
+      color: #fff;
+      line-height: 1.6;
+    }
+
+    /* Header */
+    header {
+      background-color: #cc0000;
       padding: 20px;
-      max-width: 500px;
-      margin: auto;
+      text-align: center;
     }
-    input, button {
-      margin: 10px 0;
-      padding: 8px;
-      font-size: 1rem;
+    header h1 {
+      color: #ffffff;
+      font-size: 2em;
+      margin: 0;
     }
-    canvas {
-      display: block;
-      margin: 10px 0;
-      max-width: 100%;
-      border: 1px solid #ccc;
+
+    /* Container */
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background-color: #111;
+      border-radius: 5px;
     }
+
+    /* Labels */
     label {
       display: block;
       margin-top: 10px;
+      color: #ff4242;
+      text-align: left;
+    }
+
+    /* Inputs */
+    input[type="file"],
+    input[type="number"] {
+      display: block;
+      width: 100%;
+      margin: 10px 0;
+      padding: 8px;
+      background-color: #1e1e1e;
+      color: #fff;
+      border: 1px solid #cc0000;
+      font-size: 1rem;
+      border-radius: 4px;
+    }
+
+    /* Canvas */
+    canvas {
+      display: block;
+      margin: 20px auto;
+      max-width: 100%;
+      border: 1px solid #cc0000;
+      background-color: #222;
+    }
+
+    /* Buttons (matching the .button class style) */
+    .button {
+      display: inline-block;
+      background-color: #cc0000;
+      color: #fff;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 4px;
+      font-weight: bold;
+      margin: 10px 10px 10px 0;
+      transition: background-color 0.3s ease;
+      border: none;
+      cursor: pointer;
+    }
+    .button:hover {
+      background-color: #a30000;
+    }
+
+    /* Align elements within container */
+    .actions {
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
     }
   </style>
 </head>
 <body>
-  <h1>Image Resizer</h1>
-  <p>Select a JPG or PNG image, adjust its size, and download the resized version.</p>
-  
-  <!-- File Input -->
-  <input type="file" id="imageInput" accept="image/jpeg, image/png">
-  
-  <!-- Dimension Inputs -->
-  <label for="widthInput">Width (px):</label>
-  <input type="number" id="widthInput" min="1">
-  
-  <label for="heightInput">Height (px):</label>
-  <input type="number" id="heightInput" min="1">
-  
-  <!-- Resize Button -->
-  <button id="resizeBtn" disabled>Resize Image</button>
-  
-  <!-- Preview Canvas -->
-  <canvas id="canvas"></canvas>
-  
-  <!-- Download Link -->
-  <a id="downloadLink" download="resized_image.jpg" style="display: none; font-size: 1.1rem; color: blue;">Download Resized Image</a>
-  
+  <header>
+    <h1>Image Resizer</h1>
+  </header>
+
+  <div class="container">
+    <p>Select a JPG or PNG image, adjust its size, and download the resized version.</p>
+
+    <input type="file" id="imageInput" accept="image/jpeg, image/png">
+
+    <label for="widthInput">Width (px):</label>
+    <input type="number" id="widthInput" min="1">
+
+    <label for="heightInput">Height (px):</label>
+    <input type="number" id="heightInput" min="1">
+
+    <div class="actions">
+      <button id="resizeBtn" class="button" disabled>Resize Image</button>
+      <a id="downloadLink" download="resized_image.jpg" class="button" style="display: none;">Download Resized Image</a>
+    </div>
+
+    <canvas id="canvas"></canvas>
+  </div>
+
   <script>
     const imageInput = document.getElementById('imageInput');
     const widthInput = document.getElementById('widthInput');
@@ -58,12 +130,11 @@
     const resizeBtn = document.getElementById('resizeBtn');
     const canvas = document.getElementById('canvas');
     const downloadLink = document.getElementById('downloadLink');
-    
+
     let originalImage = new Image();
     let originalWidth, originalHeight;
-    let isUserChanging = false; // Prevent recursive events
+    let isUserChanging = false;
 
-    // When the user selects an image file
     imageInput.addEventListener('change', function(e) {
       const file = e.target.files[0];
       if (file) {
@@ -73,11 +144,9 @@
           originalImage.onload = function() {
             originalWidth = originalImage.naturalWidth;
             originalHeight = originalImage.naturalHeight;
-            // Set the input fields to the image's original dimensions
             widthInput.value = originalWidth;
             heightInput.value = originalHeight;
             resizeBtn.disabled = false;
-            // Draw the original image on the canvas for preview
             canvas.width = originalWidth;
             canvas.height = originalHeight;
             const ctx = canvas.getContext('2d');
@@ -89,7 +158,6 @@
       }
     });
 
-    // Update height when width is changed (preserving aspect ratio)
     widthInput.addEventListener('input', function() {
       if (!isUserChanging && originalWidth && originalHeight) {
         isUserChanging = true;
@@ -102,7 +170,6 @@
       }
     });
 
-    // Update width when height is changed (preserving aspect ratio)
     heightInput.addEventListener('input', function() {
       if (!isUserChanging && originalWidth && originalHeight) {
         isUserChanging = true;
@@ -115,23 +182,18 @@
       }
     });
 
-    // When the "Resize Image" button is clicked
     resizeBtn.addEventListener('click', function() {
       const newWidth = parseInt(widthInput.value);
       const newHeight = parseInt(heightInput.value);
       if (newWidth > 0 && newHeight > 0) {
-        // Resize the canvas
         canvas.width = newWidth;
         canvas.height = newHeight;
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, newWidth, newHeight);
-        // Draw the resized image
         ctx.drawImage(originalImage, 0, 0, originalWidth, originalHeight, 0, 0, newWidth, newHeight);
-        // Create a data URL for the resized image (change 'image/jpeg' to 'image/png' if needed)
         const dataURL = canvas.toDataURL('image/jpeg');
-        // Set up the download link
         downloadLink.href = dataURL;
-        downloadLink.style.display = 'inline';
+        downloadLink.style.display = 'inline-block';
       }
     });
   </script>
