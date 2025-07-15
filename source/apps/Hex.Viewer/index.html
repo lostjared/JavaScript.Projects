@@ -363,7 +363,7 @@
 
             async generateHexDump(data) {
                 const lines = [];
-                const CHUNK_SIZE = 16;
+                const CHUNK_SIZE = 35;
                 const PROCESS_CHUNK = 1000; // Process 1000 lines at a time to avoid blocking
 
                 for (let offset = 0; offset < data.length; offset += CHUNK_SIZE) {
