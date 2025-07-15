@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hex Dump Viewer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .controls {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-input-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1em;
+            font-weight: 500;
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+        }
+
+        .file-input-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .file-input-label.drag-over {
+            background: linear-gradient(135deg, #764ba2, #667eea);
+            border-color: rgba(255, 255, 255, 0.8);
+        }
+
+        .file-info {
+            display: none;
+            background: #e8f5e8;
+            border: 1px solid #28a745;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            color: #155724;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .output-container {
+            max-height: 600px;
+            overflow-y: auto;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 10px;
+            border: 1px solid #333;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .hex-line {
+            white-space: pre;
+            margin-bottom: 2px;
+            padding: 2px 0;
+        }
+
+        .hex-line:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .hex-bytes {
+            color: #569cd6;
+        }
+
+        .hex-ascii {
+            color: #ce9178;
+        }
+
+        .hex-separator {
+            color: #608b4e;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { color: rgba(0, 0, 0, 0); text-shadow: .25em 0 0 rgba(0, 0, 0, 0), .5em 0 0 rgba(0, 0, 0, 0); }
+            40% { color: #6c757d; text-shadow: .25em 0 0 rgba(0, 0, 0, 0), .5em 0 0 rgba(0, 0, 0, 0); }
+            60% { text-shadow: .25em 0 0 #6c757d, .5em 0 0 rgba(0, 0, 0, 0); }
+            80%, 100% { text-shadow: .25em 0 0 #6c757d, .5em 0 0 #6c757d; }
+        }
+
+        .stats {
+            display: none;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            padding: 20px;
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .controls {
+                padding: 20px;
+            }
+            
+            .output-container {
+                margin: 10px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Hex Dump Viewer</h1>
+            <p>Upload any file to view its hexadecimal representation</p>
+        </div>
+
+        <div class="controls">
+            <div class="file-input-wrapper">
+                <input type="file" id="fileInput" class="file-input">
+                <label for="fileInput" class="file-input-label" id="fileLabel">
+                    📁 Choose a file or drag & drop here
+                </label>
+            </div>
+
+            <div class="file-info" id="fileInfo"></div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" id="processBtn" disabled>Generate Hex Dump</button>
+                <button class="btn btn-secondary" id="downloadBtn" disabled>Download as Text</button>
+                <button class="btn btn-secondary" id="clearBtn">Clear</button>
+            </div>
+        </div>
+
+        <div class="output-container" id="output" style="display: none;">
+            <div class="loading" id="loading">Processing file</div>
+        </div>
+
+        <div class="stats" id="stats"></div>
+    </div>
+
+    <script>
+        class HexDumpViewer {
+            constructor() {
+                this.fileInput = document.getElementById('fileInput');
+                this.fileLabel = document.getElementById('fileLabel');
+                this.fileInfo = document.getElementById('fileInfo');
+                this.processBtn = document.getElementById('processBtn');
+                this.downloadBtn = document.getElementById('downloadBtn');
+                this.clearBtn = document.getElementById('clearBtn');
+                this.output = document.getElementById('output');
+                this.loading = document.getElementById('loading');
+                this.stats = document.getElementById('stats');
+                
+                this.selectedFile = null;
+                this.hexDumpText = '';
+                
+                this.initEventListeners();
+            }
+
+            initEventListeners() {
+                this.fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
+                this.processBtn.addEventListener('click', () => this.processFile());
+                this.downloadBtn.addEventListener('click', () => this.downloadHexDump());
+                this.clearBtn.addEventListener('click', () => this.clearAll());
+
+                // Drag and drop functionality
+                this.fileLabel.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    this.fileLabel.classList.add('drag-over');
+                });
+
+                this.fileLabel.addEventListener('dragleave', () => {
+                    this.fileLabel.classList.remove('drag-over');
+                });
+
+                this.fileLabel.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    this.fileLabel.classList.remove('drag-over');
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        this.handleFile(files[0]);
+                    }
+                });
+            }
+
+            handleFileSelect(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    this.handleFile(file);
+                }
+            }
+
+            handleFile(file) {
+                this.selectedFile = file;
+                this.showFileInfo(file);
+                this.processBtn.disabled = false;
+            }
+
+            showFileInfo(file) {
+                const sizeInBytes = file.size;
+                const sizeInKB = (sizeInBytes / 1024).toFixed(2);
+                const sizeInMB = (sizeInBytes / (1024 * 1024)).toFixed(2);
+                
+                let sizeText = `${sizeInBytes} bytes`;
+                if (sizeInBytes > 1024) {
+                    sizeText += ` (${sizeInKB} KB)`;
+                }
+                if (sizeInBytes > 1024 * 1024) {
+                    sizeText += ` (${sizeInMB} MB)`;
+                }
+
+                this.fileInfo.innerHTML = `
+                    <strong>Selected file:</strong> ${file.name}<br>
+                    <strong>Size:</strong> ${sizeText}<br>
+                    <strong>Type:</strong> ${file.type || 'Unknown'}<br>
+                    <strong>Last modified:</strong> ${new Date(file.lastModified).toLocaleString()}
+                `;
+                this.fileInfo.style.display = 'block';
+            }
+
+            async processFile() {
+                if (!this.selectedFile) return;
+
+                this.output.style.display = 'block';
+                this.loading.style.display = 'block';
+                this.output.innerHTML = '<div class="loading" id="loading">Processing file</div>';
+                this.processBtn.disabled = true;
+
+                try {
+                    const arrayBuffer = await this.selectedFile.arrayBuffer();
+                    const uint8Array = new Uint8Array(arrayBuffer);
+                    
+                    await this.generateHexDump(uint8Array);
+                    
+                    this.downloadBtn.disabled = false;
+                    this.showStats(uint8Array.length);
+                } catch (error) {
+                    this.output.innerHTML = `<div style="color: #ff6b6b;">Error processing file: ${error.message}</div>`;
+                } finally {
+                    this.processBtn.disabled = false;
+                }
+            }
+
+            async generateHexDump(data) {
+                const lines = [];
+                const CHUNK_SIZE = 16;
+                const PROCESS_CHUNK = 1000; // Process 1000 lines at a time to avoid blocking
+
+                for (let offset = 0; offset < data.length; offset += CHUNK_SIZE) {
+                    const chunk = data.slice(offset, offset + CHUNK_SIZE);
+                    const line = this.formatHexLine(chunk, chunk.length);
+                    lines.push(line);
+
+                    // Yield control every PROCESS_CHUNK lines to keep UI responsive
+                    if (lines.length % PROCESS_CHUNK === 0) {
+                        await new Promise(resolve => setTimeout(resolve, 1));
+                        this.updateProgress(offset, data.length);
+                    }
+                }
+
+                this.hexDumpText = lines.join('\n');
+                this.displayHexDump(lines);
+            }
+
+            formatHexLine(chunk, bytesRead) {
+                let hexPart = '';
+                let asciiPart = '';
+
+                // Generate hex part
+                for (let i = 0; i < bytesRead; i++) {
+                    hexPart += chunk[i].toString(16).padStart(2, '0') + ' ';
+                }
+
+                // Pad hex part if less than 16 bytes
+                for (let i = bytesRead; i < 16; i++) {
+                    hexPart += '   ';
+                }
+
+                // Generate ASCII part
+                for (let i = 0; i < bytesRead; i++) {
+                    const char = chunk[i];
+                    if (char < 32 || char > 126) {
+                        asciiPart += '.';
+                    } else {
+                        asciiPart += String.fromCharCode(char);
+                    }
+                }
+
+                return `<span class="hex-bytes">${hexPart}</span><span class="hex-separator"> |</span><span class="hex-ascii">${asciiPart}</span><span class="hex-separator">|</span>`;
+            }
+
+            displayHexDump(lines) {
+                const maxDisplayLines = 10000; // Limit displayed lines for performance
+                const displayLines = lines.slice(0, maxDisplayLines);
+                
+                let html = displayLines.map(line => `<div class="hex-line">${line}</div>`).join('');
+                
+                if (lines.length > maxDisplayLines) {
+                    html += `<div style="color: #ff6b6b; text-align: center; padding: 20px;">
+                        ... and ${lines.length - maxDisplayLines} more lines (download to see all)
+                    </div>`;
+                }
+
+                this.output.innerHTML = html;
+            }
+
+            updateProgress(current, total) {
+                const percent = Math.round((current / total) * 100);
+                this.loading.textContent = `Processing file... ${percent}%`;
+            }
+
+            showStats(totalBytes) {
+                const totalLines = Math.ceil(totalBytes / 16);
+                this.stats.innerHTML = `
+                    <strong>Statistics:</strong> 
+                    ${totalBytes.toLocaleString()} bytes processed, 
+                    ${totalLines.toLocaleString()} lines generated
+                `;
+                this.stats.style.display = 'block';
+            }
+
+            downloadHexDump() {
+                if (!this.hexDumpText) return;
+
+                const blob = new Blob([this.hexDumpText], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${this.selectedFile.name}.hexdump.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            clearAll() {
+                this.selectedFile = null;
+                this.hexDumpText = '';
+                this.fileInput.value = '';
+                this.fileInfo.style.display = 'none';
+                this.output.style.display = 'none';
+                this.stats.style.display = 'none';
+                this.processBtn.disabled = true;
+                this.downloadBtn.disabled = true;
+                this.fileLabel.textContent = '📁 Choose a file or drag & drop here';
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            new HexDumpViewer();
+        });
+    </script>
+</body>
+</html>
