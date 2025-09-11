@@ -7,7 +7,6 @@
 int active = 1;
 SDL_Event e;
 struct Ship ship;
-struct pNode node;
 struct pNode *projectiles = NULL;
 
 
