@@ -1,4 +1,4 @@
-SRC = sdl.c main.c
+SRC = sdl.c main.c ship.c projectile.c
 OUT = invaders.html
 EMCC = emcc
 CFLAGS = -O2 -s USE_SDL=2 -s ALLOW_MEMORY_GROWTH=1
