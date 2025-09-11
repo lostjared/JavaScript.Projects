@@ -2,10 +2,14 @@
 #include<stdlib.h>
 #include"sdl.h"
 #include"ship.h"
+#include "projectile.h"
 
 int active = 1;
 SDL_Event e;
 struct Ship ship;
+struct pNode node;
+struct pNode *projectiles = NULL;
+
 
 void render(void);
 void loop(void);
@@ -28,6 +32,7 @@ int main(int argc, char **argv) {
     }
 #endif
 
+    pnode_free(projectiles);
     releaseSDL();
     return 0;
 }
@@ -40,7 +45,6 @@ void loop(void) {
                 active = 0;
                 break;
             case SDL_KEYDOWN:
-
                 if(e.key.keysym.sym == SDLK_ESCAPE) {
                     active = 0;
                     continue;
@@ -58,6 +62,7 @@ void render(void) {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
     ship_draw(&ship);
+    projectiles = pnode_display(projectiles);
     SDL_SetRenderTarget(renderer, NULL);
     SDL_RenderCopy(renderer, texture, NULL, NULL);
     SDL_RenderPresent(renderer);
@@ -71,5 +76,8 @@ void keyscan(void) {
     }
     if(keys[SDL_SCANCODE_RIGHT]) {
         ship_right(&ship);
+    }
+    if(keys[SDL_SCANCODE_SPACE]) {
+        projectiles = pnode_add(projectiles, ship.x+(ship.w/2), ship.y-ship.h, 0);
     }
 }
