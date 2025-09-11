@@ -5,7 +5,9 @@
 #include"ship.h"
 #include"projectile.h"
 #include"alien.h"
-
+#ifdef __EMSCRIPTEN__
+#include<emscripten.h>
+#endif
 int active = 1;
 SDL_Event e;
 struct Ship ship;
@@ -18,8 +20,12 @@ int explosion_active = 0;
 int explosion_x = 0;
 int explosion_y = 0;
 int explosion_timer = 0;
-int explosion_duration = 60; 
+int explosion_duration = 30; 
+int score = 0;
+int lives = 3;
 
+
+int game_over = 0;
 
 int projectile_cooldown = 0;
 int projectile_cooldown_max = 5; 
@@ -33,6 +39,8 @@ void check_ship_collision(void);
 void draw_explosion(int x, int y, int frame);
 int count_living_aliens(void);
 void reset_game(void);
+void draw_game_over(void);
+void reset_alien_positions(void); 
 
 int main(int argc, char **argv) {
     if(!initSDL("[space]", 640, 360, 1280, 720)) {
@@ -71,8 +79,20 @@ void loop(void) {
                     reset_game();
                     continue;
                 }
+                
+                if(e.key.keysym.sym == SDLK_RETURN && game_over) {
+                    reset_game();
+                    continue;
+                }
                 break;
         }
+    }
+    
+    
+    if (game_over) {
+        render();
+        SDL_Delay(16);
+        return;
     }
     
     if (projectile_cooldown > 0) {
@@ -86,7 +106,8 @@ void loop(void) {
     
     if (explosion_active) {
         if (explosion_timer >= explosion_duration) {
-            reset_game();
+            explosion_active = 0;
+            explosion_timer = 0;
         }
     }
     
@@ -145,6 +166,7 @@ void check_collisions(void) {
                     current_projectile->y <= current_alien->y + 17) {
                     current_alien->alive = 0;
                     hit = 1;
+                    score += 10;
                 }
             }
             current_alien = current_alien->next;
@@ -182,6 +204,14 @@ void check_ship_collision(void) {
                 explosion_timer = 0;
                 
                 current->alive = 0;
+                lives--;
+                
+                reset_alien_positions();
+                
+                if(lives <= 0) {
+                    game_over = 1;
+                }
+                
                 break;
             }
         }
@@ -189,16 +219,40 @@ void check_ship_collision(void) {
     }
 }
 
+void reset_alien_positions(void) {
+    struct Alien *current = aliens;
+    int row = 0;
+    int col = 0;
+    int spacing_x = 30;
+    int spacing_y = 25;
+    int grid_width = 19 * spacing_x;
+    int start_x = (640 - grid_width) / 2;
+    int start_y = 50;    
+    while (current != NULL) {
+        
+        current->x = start_x + (col * spacing_x);
+        current->y = start_y + (row * spacing_y);
+        
+        col++;
+        if (col >= 19) {
+            col = 0;
+            row++;
+        }
+        
+        current = current->next;
+    }
+    alien_direction = 1;
+    alien_move_timer = 0;
+}
+
 void draw_explosion(int x, int y, int frame) {
     if (!explosion_active) return;
     
     explosion_timer++;
     
-    
     if (explosion_timer >= explosion_duration) {
         explosion_active = 0;
         explosion_timer = 0;
-        reset_game();
         return;
     }
     
@@ -236,6 +290,25 @@ void draw_explosion(int x, int y, int frame) {
     }
 }
 
+void draw_game_over(void) {
+    
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 128);
+    SDL_Rect overlay = {0, 0, 640, 360};
+    SDL_RenderFillRect(renderer, &overlay);
+    
+    
+    settextcolor(255, 0, 0, 255);
+    printtext("GAME OVER", 280, 150);
+    
+    settextcolor(255, 255, 255, 255); 
+    char final_score[64];
+    snprintf(final_score, 64, "Final Score: %d", score);
+    printtext(final_score, 260, 180);
+    
+    settextcolor(255, 255, 0, 255); 
+    printtext("Press ENTER to continue", 200, 210);
+}
+
 int count_living_aliens(void) {
     int count = 0;
     struct Alien *current = aliens;
@@ -249,27 +322,33 @@ int count_living_aliens(void) {
 }
 
 void reset_game(void) {
- 
+    
     ship_init(&ship);
     
- 
+    
     if (projectiles != NULL) {
         pnode_free(projectiles);
         projectiles = NULL;
     }
+    
     
     if (aliens != NULL) {
         alien_free(aliens);
     }
     aliens = alien_create_grid(19, 10);
     
- 
+    
     explosion_active = 0;
     explosion_timer = 0;
     alien_direction = 1;
     alien_move_timer = 0;
-    alien_move_speed = 30; 
+    alien_move_speed = 40; 
     projectile_cooldown = 0;
+    
+    
+    game_over = 0;
+    score = 0;
+    lives = 3;
 }
 
 void render(void) {
@@ -277,7 +356,7 @@ void render(void) {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
     
-    if (!explosion_active) {
+    if (!explosion_active && !game_over) {
         ship_draw(&ship);
     }
     
@@ -288,15 +367,28 @@ void render(void) {
         draw_explosion(explosion_x, explosion_y, explosion_timer);
     }
     
+    
+    char score_buf[1024];
+    snprintf(score_buf, 1024, "Score: %d", score);
+    settextcolor(255,255,255,255);
+    printtext(score_buf, 15, 15);
+    snprintf(score_buf,1024, "Lives: %d", lives);
+    printtext(score_buf, 150, 15);
+    
+    
+    if (game_over) {
+        draw_game_over();
+    }
+    
     SDL_SetRenderTarget(renderer, NULL);
     SDL_RenderCopy(renderer, texture, NULL, NULL);
     SDL_RenderPresent(renderer);
 }
 
 void keyscan(void) {
-    const Uint8 *keys = SDL_GetKeyboardState(0);
+    const Uint8 *keys = SDL_GetKeyboardState(0); 
     
-    if (!explosion_active) {
+    if (!explosion_active && !game_over) {
         if (keys[SDL_SCANCODE_LEFT]) {
             ship_left(&ship);
         }

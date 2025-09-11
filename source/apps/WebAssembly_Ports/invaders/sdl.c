@@ -3,6 +3,17 @@
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 SDL_Texture *texture = NULL;
+TTF_Font *font = NULL;
+
+const char *getPath(const char *src) {
+    static char path[4096];
+#ifndef __EMSCRIPTEN__
+    sprintf(path, "%s%s", "./assets/", src);
+#else
+    sprintf(path, "/assets/%s", src);
+#endif
+    return path;
+}
 
 int initSDL(const char *app, int w, int h, int sx, int sy) {
 
@@ -34,12 +45,54 @@ int initSDL(const char *app, int w, int h, int sx, int sy) {
         return 0;
     }
 
+    if(TTF_Init() < 0) {
+        fprintf(stderr, "Could not initalize fonts.\n");
+        SDL_DestroyTexture(texture);
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 0;
+    }
+
+    font = TTF_OpenFont(getPath("font.ttf"), 16);
+    if(!font) {
+        fprintf(stderr, "Error opening font: %s Reason: %s\n", "font.ttf", TTF_GetError());
+        SDL_DestroyTexture(texture);
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+        TTF_Quit();
+        SDL_Quit();
+        return 0;
+    }
     return 1;
 }
 
 void releaseSDL(void) {
+    if(font) TTF_CloseFont(font);
+    TTF_Quit();
     if (texture) SDL_DestroyTexture(texture);
     if (renderer) SDL_DestroyRenderer(renderer);
     if (window) SDL_DestroyWindow(window);
     SDL_Quit();
+}
+
+SDL_Color textColor;
+
+void settextcolor(unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
+    textColor.r = r;
+    textColor.g = g;
+    textColor.b = b;
+    textColor.a = a;
+}
+
+void printtext(const char *src, int x, int y) {
+    if (!font || !renderer) return;
+    SDL_Surface *surface = TTF_RenderText_Blended(font, src, textColor);
+    if (!surface) return;
+    SDL_Texture *textTex = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    if (!textTex) return;
+    SDL_Rect dst = {x, y, surface->w, surface->h};
+    SDL_RenderCopy(renderer, textTex, NULL, &dst);
+    SDL_DestroyTexture(textTex);
 }
