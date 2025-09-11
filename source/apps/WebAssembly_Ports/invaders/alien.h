@@ -15,7 +15,9 @@ void alien_free(struct Alien *a);
 void alien_draw(struct Alien *a);
 struct Alien *alien_new(int x, int y, int type);
 struct Alien *alien_add(struct Alien *head, int x, int y, int type);
+struct Alien *alien_create_grid(int w, int h);
 struct Alien *alien_display_all(struct Alien *head);
 struct Alien *alien_update_all(struct Alien *head, int move_x, int move_y);
+
 
 #endif
