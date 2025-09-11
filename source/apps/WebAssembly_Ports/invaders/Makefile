@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -g `sdl2-config --cflags`
+CFLAGS = -Wall -pedantic -g `sdl2-config --cflags`
 LDFLAGS = -lm `sdl2-config --libs`
 TARGET = invaders
 
