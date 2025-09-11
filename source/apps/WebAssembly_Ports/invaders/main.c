@@ -9,6 +9,7 @@ struct Ship ship;
 
 void render(void);
 void loop(void);
+void keyscan(void);
 
 int main(int argc, char **argv) {
 
@@ -44,14 +45,10 @@ void loop(void) {
                     active = 0;
                     continue;
                 }
-
-                if(e.key.keysym.sym == SDLK_LEFT)
-                    ship_left(&ship);
-                if(e.key.keysym.sym == SDLK_RIGHT)
-                    ship_right(&ship);
                 break;
         }
     }
+    keyscan();
     render();
     SDL_Delay(16);
 }
@@ -65,4 +62,14 @@ void render(void) {
     SDL_RenderCopy(renderer, texture, NULL, NULL);
     SDL_RenderPresent(renderer);
 
+}
+
+void keyscan(void) {
+    const Uint8 *keys = SDL_GetKeyboardState(0);
+    if (keys[SDL_SCANCODE_LEFT]) {
+        ship_left(&ship);
+    }
+    if(keys[SDL_SCANCODE_RIGHT]) {
+        ship_right(&ship);
+    }
 }
