@@ -13,7 +13,7 @@ struct pNode *projectiles = NULL;
 struct Alien *aliens = NULL;
 int alien_direction = 1; 
 int alien_move_timer = 0;
-int alien_move_speed = 30;
+int alien_move_speed = 40;
 int explosion_active = 0;
 int explosion_x = 0;
 int explosion_y = 0;
@@ -94,7 +94,7 @@ void loop(void) {
         alien_free(aliens);
         aliens = alien_create_grid(19, 10);
         if (alien_move_speed > 15) {
-            alien_move_speed -= 2;
+            alien_move_speed -= 5;
         }
     }
     
