@@ -15,7 +15,7 @@ struct pNode *projectiles = NULL;
 struct Alien *aliens = NULL;
 int alien_direction = 1; 
 int alien_move_timer = 0;
-int alien_move_speed = 40;
+int alien_move_speed = 45; 
 int explosion_active = 0;
 int explosion_x = 0;
 int explosion_y = 0;
@@ -28,7 +28,8 @@ int lives = 3;
 int game_over = 0;
 
 int projectile_cooldown = 0;
-int projectile_cooldown_max = 5; 
+int projectile_cooldown_max = 12; 
+int max_projectiles = 1; 
 
 void render(void);
 void loop(void);
@@ -50,7 +51,7 @@ int main(int argc, char **argv) {
     }
 
     ship_init(&ship);
-    aliens = alien_create_grid(11, 5); 
+    aliens = alien_create_grid(13, 6); 
     
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop(loop, 0, 1);
@@ -116,11 +117,12 @@ void loop(void) {
         }
     }
     
+    
     if (!explosion_active && count_living_aliens() == 0) {
         alien_free(aliens);
-        aliens = alien_create_grid(19, 10);
-        if (alien_move_speed > 15) {
-            alien_move_speed -= 5;
+        aliens = alien_create_grid(13, 6); 
+        if (alien_move_speed > 10) {
+            alien_move_speed -= 8; 
         }
     }
     
@@ -129,23 +131,25 @@ void loop(void) {
 }
 
 void update_aliens(void) {
-    
     int living_aliens = count_living_aliens();
-    int base_speed = 60;
-    alien_move_speed = base_speed - (55 - living_aliens); 
-    if (alien_move_speed < 5) alien_move_speed = 5; 
+    int base_speed = 45; 
+    int total_aliens = 78; 
+    
+    
+    alien_move_speed = base_speed - ((total_aliens - living_aliens) / 3); 
+    if (alien_move_speed < 8) alien_move_speed = 8; 
     
     alien_move_timer++;
     if (alien_move_timer >= alien_move_speed) {
         alien_move_timer = 0;
         
-        
         int hit_edge = 0;
         struct Alien *current = aliens;
         while (current != NULL) {
             if (current->alive) {
-                if ((current->x <= 20 && alien_direction == -1) || 
-                    (current->x >= 600 && alien_direction == 1)) {
+                
+                if ((current->x <= 5 && alien_direction == -1) || 
+                    (current->x >= 585 && alien_direction == 1)) {
                     hit_edge = 1;
                     break;
                 }
@@ -155,7 +159,7 @@ void update_aliens(void) {
         
         if (hit_edge) {
             alien_direction *= -1;
-            aliens = alien_update_all(aliens, 0, 16); 
+            aliens = alien_update_all(aliens, 0, 25); 
         } else {
             aliens = alien_update_all(aliens, alien_direction * 12, 0); 
         }
@@ -244,24 +248,26 @@ void reset_alien_positions(void) {
     struct Alien *current = aliens;
     int row = 0;
     int col = 0;
-    int spacing_x = 30;
-    int spacing_y = 25;
-    int grid_width = 19 * spacing_x;
+    int spacing_x = 45; 
+    int spacing_y = 35; 
+    int cols = 13; 
+    int grid_width = cols * spacing_x;
     int start_x = (640 - grid_width) / 2;
-    int start_y = 50;    
+    int start_y = 40; 
+    
     while (current != NULL) {
-        
         current->x = start_x + (col * spacing_x);
         current->y = start_y + (row * spacing_y);
         
         col++;
-        if (col >= 19) {
+        if (col >= cols) { 
             col = 0;
             row++;
         }
         
         current = current->next;
     }
+    
     alien_direction = 1;
     alien_move_timer = 0;
 }
@@ -342,34 +348,53 @@ int count_living_aliens(void) {
     return count;
 }
 
+
+int count_projectiles(void) {
+    int count = 0;
+    struct pNode *current = projectiles;
+    while (current != NULL) {
+        count++;
+        current = current->next;
+    }
+    return count;
+}
+
 void reset_game(void) {
-    
     ship_init(&ship);
-    
     
     if (projectiles != NULL) {
         pnode_free(projectiles);
         projectiles = NULL;
     }
     
-    
     if (aliens != NULL) {
         alien_free(aliens);
     }
-    aliens = alien_create_grid(19, 10);
-    
+    aliens = alien_create_grid(13, 6); 
     
     explosion_active = 0;
     explosion_timer = 0;
     alien_direction = 1;
     alien_move_timer = 0;
-    alien_move_speed = 40; 
+    alien_move_speed = 45; 
     projectile_cooldown = 0;
-    
     
     game_over = 0;
     score = 0;
     lives = 3;
+}
+
+
+void check_alien_invasion(void) {
+    struct Alien *current = aliens;
+    while (current != NULL) {
+        if (current->alive && current->y >= ship.y - 80) { 
+            lives = 0;
+            game_over = 1;
+            break;
+        }
+        current = current->next;
+    }
 }
 
 void render(void) {
@@ -416,22 +441,10 @@ void keyscan(void) {
         if(keys[SDL_SCANCODE_RIGHT]) {
             ship_right(&ship);
         }
-        if(keys[SDL_SCANCODE_SPACE] && projectile_cooldown == 0) {
+        
+        if(keys[SDL_SCANCODE_SPACE] && projectile_cooldown == 0 && count_projectiles() < max_projectiles) {
             projectiles = pnode_add(projectiles, ship.x+(ship.w/2), ship.y-ship.h, 0);
             projectile_cooldown = projectile_cooldown_max; 
         }
-    }
-}
-
-void check_alien_invasion(void) {
-    struct Alien *current = aliens;
-    while (current != NULL) {
-        if (current->alive && current->y >= ship.y - 50) {
-            
-            lives = 0;
-            game_over = 1;
-            break;
-        }
-        current = current->next;
     }
 }
