@@ -191,22 +191,27 @@ struct Alien *alien_update_all(struct Alien *head, int move_x, int move_y) {
 
 struct Alien *alien_create_grid(int w, int h) {
     struct Alien *head = NULL;
-    int rows = h;
-    int cols = w;
-    int spacing_x = 30;
-    int spacing_y = 25;
+    int rows = 5;  
+    int cols = 11; 
+    int spacing_x = 24;
+    int spacing_y = 16;
     int grid_width = cols * spacing_x;
     int start_x = (640 - grid_width) / 2;
-    int start_y = 50;
+    int start_y = 80;
 
     for (int row = 0; row < rows; row++) {
         for (int col = 0; col < cols; col++) {
             int x = start_x + col * spacing_x;
             int y = start_y + row * spacing_y;
-            int type = row / 2;
+            
+            
+            int type;
+            if (row == 0) type = 0;      
+            else if (row <= 2) type = 1; 
+            else type = 2;               
+            
             head = alien_add(head, x, y, type);
         }
     }
-
     return head;
 }
