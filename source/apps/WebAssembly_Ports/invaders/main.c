@@ -388,7 +388,7 @@ void reset_game(void) {
 void check_alien_invasion(void) {
     struct Alien *current = aliens;
     while (current != NULL) {
-        if (current->alive && current->y >= ship.y - 80) { 
+        if (current->alive && current->y >= ship.y - 30) { 
             lives = 0;
             game_over = 1;
             break;
