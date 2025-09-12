@@ -43,15 +43,13 @@ void ship_draw(struct Ship *s) {
 
 void ship_left(struct Ship *s) {
     if(s->x > 0)
-        s->x -= 5;
-
+        s->x -= 3; 
     ship_clamp(s);
 }
 
 void ship_right(struct Ship *s) {
     if(s->x < 640-(s->w/2))
-        s->x  += 5;
-
+        s->x += 3; 
     ship_clamp(s);
 }
 
