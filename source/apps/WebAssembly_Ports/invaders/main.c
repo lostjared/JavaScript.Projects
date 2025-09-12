@@ -389,9 +389,23 @@ void check_alien_invasion(void) {
     struct Alien *current = aliens;
     while (current != NULL) {
         if (current->alive && current->y >= ship.y - 30) { 
-            lives = 0;
-            game_over = 1;
-            break;
+    
+            explosion_active = 1;
+            explosion_x = ship.x + ship.w / 2;
+            explosion_y = ship.y + ship.h / 2;
+            explosion_timer = 0;
+            
+            lives--;
+            
+    
+            reset_alien_positions();
+            
+    
+            if(lives <= 0) {
+                game_over = 1;
+            }
+            
+            break; 
         }
         current = current->next;
     }
