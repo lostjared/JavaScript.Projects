@@ -31,6 +31,16 @@ int projectile_cooldown = 0;
 int projectile_cooldown_max = 12; 
 int max_projectiles = 1; 
 
+typedef struct {
+    int active;
+    int x, y;
+    int timer;
+    int duration;
+} AlienExplosion;
+
+AlienExplosion alien_explosions[10]; 
+int max_alien_explosions = 10;
+
 void render(void);
 void loop(void);
 void keyscan(void);
@@ -43,6 +53,8 @@ void reset_game(void);
 void draw_game_over(void);
 void reset_alien_positions(void); 
 void check_alien_invasion(void); 
+void draw_alien_explosions(void);
+void add_alien_explosion(int x, int y);
 
 int main(int argc, char **argv) {
     if(!initSDL("[space]", 640, 360, 1280, 720)) {
@@ -184,6 +196,8 @@ void check_collisions(void) {
                     current_alien->alive = 0;
                     hit = 1;
                     
+                    
+                    add_alien_explosion(current_alien->x + 10, current_alien->y + 8);
                     
                     switch(current_alien->type) {
                         case 0: score += 30; break; 
@@ -379,6 +393,11 @@ void reset_game(void) {
     alien_move_speed = 45; 
     projectile_cooldown = 0;
     
+    
+    for (int i = 0; i < max_alien_explosions; i++) {
+        alien_explosions[i].active = 0;
+    }
+    
     game_over = 0;
     score = 0;
     lives = 3;
@@ -423,6 +442,9 @@ void render(void) {
     projectiles = pnode_display(projectiles);
     aliens = alien_display_all(aliens);
     
+    
+    draw_alien_explosions();
+    
     if (explosion_active) {
         draw_explosion(explosion_x, explosion_y, explosion_timer);
     }
@@ -459,6 +481,63 @@ void keyscan(void) {
         if(keys[SDL_SCANCODE_SPACE] && projectile_cooldown == 0 && count_projectiles() < max_projectiles) {
             projectiles = pnode_add(projectiles, ship.x+(ship.w/2), ship.y-ship.h, 0);
             projectile_cooldown = projectile_cooldown_max; 
+        }
+    }
+}
+
+
+void add_alien_explosion(int x, int y) {
+    for (int i = 0; i < max_alien_explosions; i++) {
+        if (!alien_explosions[i].active) {
+            alien_explosions[i].active = 1;
+            alien_explosions[i].x = x;
+            alien_explosions[i].y = y;
+            alien_explosions[i].timer = 0;
+            alien_explosions[i].duration = 15; 
+            break;
+        }
+    }
+}
+
+
+void draw_alien_explosions(void) {
+    for (int i = 0; i < max_alien_explosions; i++) {
+        if (alien_explosions[i].active) {
+            alien_explosions[i].timer++;
+            
+            if (alien_explosions[i].timer >= alien_explosions[i].duration) {
+                alien_explosions[i].active = 0;
+                continue;
+            }
+            
+            int x = alien_explosions[i].x;
+            int y = alien_explosions[i].y;
+            int timer = alien_explosions[i].timer;
+            
+
+            int intensity = 255 - (timer * 255 / alien_explosions[i].duration);
+            SDL_SetRenderDrawColor(renderer, 255, intensity, 0, 255); 
+            
+            
+            int num_lines = 6;
+            int radius = timer; 
+            
+            for (int j = 0; j < num_lines; j++) {
+                float angle = (j * 2.0f * 3.14159f) / num_lines;
+                int end_x = x + (int)(radius * cos(angle));
+                int end_y = y + (int)(radius * sin(angle));
+                
+                SDL_RenderDrawLine(renderer, x, y, end_x, end_y);
+            }
+            
+            
+            if (timer % 2 == 0) {
+                for (int k = 0; k < 4; k++) {
+                    int spark_x = x + (rand() % 10) - 5;
+                    int spark_y = y + (rand() % 10) - 5;
+                    SDL_RenderDrawPoint(renderer, spark_x, spark_y);
+                }
+            }
         }
     }
 }
