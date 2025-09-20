@@ -204,7 +204,6 @@ void update(void) {
 }
 
 void draw_countdown_sequence(void) {
-    
     if (!initialized) {
         for (int i = 0; i < STAR_COUNT; ++i) {
             stars[i].x = rand() % WINDOW_W;
@@ -213,7 +212,6 @@ void draw_countdown_sequence(void) {
         }
         initialized = 1;
     }
-    
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     for (int i = 0; i < STAR_COUNT; ++i) {
         stars[i].y += stars[i].speed * 0.3f; 
@@ -224,17 +222,11 @@ void draw_countdown_sequence(void) {
         }
         SDL_RenderDrawPoint(renderer, (int)stars[i].x, (int)stars[i].y);
     }
-    
-    
     char countdown_text[16];
     if (countdown_number > 0) {
         snprintf(countdown_text, 16, "%d", countdown_number);
         settextcolor(255, 255, 0, 255); 
-        
-        
-        printtext(countdown_text, 310, 170);
-        
-        
+        printtext(countdown_text, 315, 170);
         SDL_SetRenderDrawColor(renderer, 255, 255, 0, 128);
         int flash = (countdown_timer / 10) % 2;
         if (flash) {
@@ -242,12 +234,9 @@ void draw_countdown_sequence(void) {
             SDL_RenderDrawRect(renderer, &highlight);
         }
     } else {
-
         settextcolor(0, 255, 0, 255); 
         printtext("LAUNCH!", 280, 170);
     }
-    
-
     settextcolor(255, 255, 255, 255);
     printtext("PREPARE FOR MISSION", 240, 200);
     
