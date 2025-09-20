@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -g `sdl2-config --cflags`
-LDFLAGS = -lm `sdl2-config --libs`
+LDFLAGS = -lm `sdl2-config --libs` -lSDL2_ttf
 TARGET = space
 
 SRCS = $(wildcard *.c)

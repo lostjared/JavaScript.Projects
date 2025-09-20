@@ -1,13 +1,13 @@
 #include "ship.h"
 #include "sdl.h"
 
-#define MAX_PROJECTILES 30
+#define MAX_PROJECTILES 50
 #define MAX_ASTEROIDS 20
 #define PROJECTILE_SPEED 5.0f
 #define PROJECTILE_LIFETIME 60  
-#define FIRE_COOLDOWN 30
-#define SHOTS_PER_BURST 3    
-#define FIRE_DELAY 8         
+#define FIRE_COOLDOWN 5        
+#define SHOTS_PER_BURST 5      
+#define FIRE_DELAY 3           
 
 #define EXPLOSION_DURATION 90     
 #define RESPAWN_DELAY 120         
@@ -387,18 +387,19 @@ void draw_explosion(void) {
 }
 
 bool can_fire(void) {
-    if (the_ship.fire_cooldown > 0) {
-        the_ship.fire_cooldown--;
-        return false;
+    if (the_ship.fire_cooldown <= 0) {
+        if (the_ship.burst_count < SHOTS_PER_BURST) {
+            the_ship.fire_cooldown = FIRE_DELAY;  
+            the_ship.burst_count++;
+            return true;
+        } else {
+            
+            the_ship.fire_cooldown = FIRE_COOLDOWN;
+            the_ship.burst_count = 0;
+            return false;
+        }
     }
-    if (the_ship.burst_count >= SHOTS_PER_BURST) {
-        the_ship.fire_cooldown = FIRE_COOLDOWN;
-        the_ship.burst_count = 0;
-        return false;
-    }
-    the_ship.burst_count++;
-    the_ship.fire_cooldown = FIRE_DELAY;
-    return true;
+    return false;
 }
 
 void check_projectile_asteroid_collisions(void) {
@@ -461,20 +462,6 @@ void split_asteroid(int index) {
     asteroids[index].active = false;
 }
 
-void draw_score(void) {
-    int dots = the_ship.score / 10;
-    int x = 10;
-    int y = 10;
-    int spacing = 3;
-    
-    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);  
-    
-    for (int i = 0; i < dots && i < 100; i++) {
-        SDL_Rect scoreRect = {x + (i % 25) * spacing, y + (i / 25) * spacing, 2, 2};
-        SDL_RenderFillRect(renderer, &scoreRect);
-    }
-}
-
 void update_ship(void) {
     
     if (the_ship.exploding) {
@@ -515,6 +502,11 @@ void update_ship(void) {
         
 
     check_ship_asteroid_collision();
+    
+    
+    if (the_ship.fire_cooldown > 0) {
+        the_ship.fire_cooldown--;
+    }
 }
 
 void check_and_spawn_asteroids(void) {

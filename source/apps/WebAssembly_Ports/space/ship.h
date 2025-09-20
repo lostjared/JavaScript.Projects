@@ -28,6 +28,7 @@ extern bool keyLeft, keyRight, keyThrust;
 void init_ship(void);
 void draw_ship(void);
 void update_ship(void);
+bool can_fire(void);
 
 typedef struct {
     float x, y;
