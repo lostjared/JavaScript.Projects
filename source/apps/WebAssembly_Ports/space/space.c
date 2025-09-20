@@ -1,4 +1,4 @@
-/* coded by Jared Bruni */
+
 #ifdef __EMSCRIPTEN__
 #include<emscripten.h>
 #endif
@@ -181,18 +181,19 @@ void update(void) {
     update_ship();
     update_projectiles();
     update_asteroids();
-    check_and_spawn_asteroids();
-    check_asteroid_collisions();
-    check_projectile_asteroid_collisions();
+    update_explosion();
     
+    check_asteroid_collisions();        
+    check_ship_asteroid_collision();    
+    check_projectile_asteroid_collisions(); 
+    
+    check_and_spawn_asteroids();
     
     static bool was_exploding = false;
     if (was_exploding && !the_ship.exploding) {
-    
         if (the_ship.lives > 0) {
-            trigger_respawn_sequence();
+            trigger_respawn_sequence(); 
         } else {
-    
             game_over = 1;
         }
         was_exploding = false;
@@ -348,6 +349,7 @@ void render(void) {
         draw_ship();
         draw_projectiles();
         draw_asteroids();
+        draw_explosion();
         draw_score(); 
     }
     

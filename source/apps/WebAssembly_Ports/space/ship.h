@@ -69,10 +69,13 @@ void check_ship_asteroid_collision(void);
 void start_ship_explosion(void);
 void update_explosion(void);
 void draw_explosion(void);
-
+void create_asteroid_explosion(float x, float y);
 
 void check_projectile_asteroid_collisions(void);
 void split_asteroid(int index);
+void check_and_spawn_asteroids(void);
+void update_ship(void);
 void draw_score(void);
+
 
 #endif
