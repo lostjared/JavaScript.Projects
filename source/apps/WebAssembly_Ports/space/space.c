@@ -1,10 +1,14 @@
-
 #ifdef __EMSCRIPTEN__
 #include<emscripten.h>
 #endif
 
 #include"sdl.h"
 #include"ship.h"
+#include<math.h> 
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 #define WINDOW_W 640
 #define WINDOW_H 360
@@ -14,7 +18,6 @@
 
 int initialized = 0;
 struct { float x, y, speed; } stars[STAR_COUNT];
-
 
 int countdown_sequence = 1; 
 int countdown_timer = 0;
@@ -34,6 +37,7 @@ void draw_countdown_sequence(void);
 void trigger_respawn_sequence(void);
 void draw_score(void);
 void draw_game_over(void);
+void restart_game(void);
 
 SDL_Event e;
 int active = 1;
@@ -47,7 +51,6 @@ int main(int argc, char **argv) {
     init_ship();
     init_projectiles();
     init_asteroids();
-    
     
     countdown_sequence = 1;
     countdown_timer = 0;
@@ -64,8 +67,18 @@ int main(int argc, char **argv) {
     return 0;
 }   
 
+void restart_game(void) {
+    init_ship();
+    init_projectiles();
+    init_asteroids();
+    game_over = 0;
+    countdown_sequence = 1;
+    countdown_timer = 0;
+    countdown_number = 3;
+    launch_sequence = 0;
+}
+
 void trigger_respawn_sequence(void) {
-    
     the_ship.x = SCALE_W / 2.0f;
     the_ship.y = SCALE_H / 2.0f;
     the_ship.vx = 0.0f;
@@ -73,7 +86,6 @@ void trigger_respawn_sequence(void) {
     the_ship.angle = 0.0f;
     the_ship.exploding = false;
     the_ship.explosion_timer = 0;
-    
     
     countdown_sequence = 1;
     countdown_timer = 0;
@@ -87,21 +99,13 @@ void update(void) {
             case SDL_QUIT:
                 active = 0;
                 continue;
+                
             case SDL_KEYDOWN:
                 if(e.key.keysym.sym == SDLK_ESCAPE) 
                     active = 0;
                 
-                
                 if(e.key.keysym.sym == SDLK_SPACE && game_over) {
-                
-                    init_ship();
-                    init_projectiles();
-                    init_asteroids();
-                    game_over = 0;
-                    countdown_sequence = 1;
-                    countdown_timer = 0;
-                    countdown_number = 3;
-                    launch_sequence = 0;
+                    restart_game();
                     return;
                 }
                 
@@ -114,6 +118,7 @@ void update(void) {
                         keyThrust = true;
                 }
                 break;
+                
             case SDL_KEYUP:
                 if (!launch_sequence && !countdown_sequence && !game_over) {
                     if(e.key.keysym.sym == SDLK_LEFT)
@@ -126,7 +131,6 @@ void update(void) {
                 break;                          
         }
     }
-    
     
     if (game_over) {
         render();
@@ -251,7 +255,6 @@ void draw_countdown_sequence(void) {
 }
 
 void draw_launch_sequence(void) {
-
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     for (int i = 0; i < STAR_COUNT; ++i) {
         stars[i].y += stars[i].speed * 0.5f; 
@@ -263,20 +266,16 @@ void draw_launch_sequence(void) {
         SDL_RenderDrawPoint(renderer, (int)stars[i].x, (int)stars[i].y);
     }
     
-
     if (launch_timer > launch_duration / 4) {
         draw_asteroids();
     }
     
-
     float temp_y = the_ship.y;
     the_ship.y = ship_launch_y;
     draw_ship();
     the_ship.y = temp_y; 
     
-
     if (launch_timer < launch_duration / 2) {
-
         SDL_SetRenderDrawColor(renderer, 255, 100, 0, 255); 
         for (int i = 0; i < 12; i++) {
             int thrust_x = the_ship.x + (rand() % 8) - 4;
@@ -287,7 +286,6 @@ void draw_launch_sequence(void) {
         }
     }
     
-
     if (launch_timer >= launch_duration / 2) {
         settextcolor(0, 255, 255, 255); 
         printtext("MISSION START!", 250, 180);
@@ -295,7 +293,6 @@ void draw_launch_sequence(void) {
 }
 
 void draw_game_over(void) {
-    
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     for (int i = 0; i < STAR_COUNT; ++i) {
         stars[i].y += stars[i].speed * 0.2f; 
@@ -307,16 +304,13 @@ void draw_game_over(void) {
         SDL_RenderDrawPoint(renderer, (int)stars[i].x, (int)stars[i].y);
     }
     
-    
     settextcolor(255, 0, 0, 255); 
     printtext("GAME OVER", 270, 140);
-    
     
     char final_score[64];
     snprintf(final_score, 64, "Final Score: %d", the_ship.score);
     settextcolor(255, 255, 255, 255); 
     printtext(final_score, 250, 170);
-    
     
     settextcolor(255, 255, 0, 255); 
     printtext("Press SPACE to begin", 230, 200);
@@ -334,7 +328,6 @@ void render(void) {
     } else if (launch_sequence) {
         draw_launch_sequence();
     } else {
-        
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         for (int i = 0; i < STAR_COUNT; ++i) {
             stars[i].y += stars[i].speed;
@@ -354,6 +347,8 @@ void render(void) {
     }
     
     SDL_SetRenderTarget(renderer, NULL);
+    
+    
     SDL_Rect destRect = {0, 0, WINDOW_SX, WINDOW_SY};
     SDL_RenderCopy(renderer, texture, NULL, &destRect);
     SDL_RenderPresent(renderer);
