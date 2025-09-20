@@ -1,3 +1,4 @@
+/* coded by Jared Bruni */
 #include "sdl.h"
 
 SDL_Window *window = NULL;

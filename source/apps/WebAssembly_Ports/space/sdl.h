@@ -1,3 +1,4 @@
+/* coded by Jared Bruni */
 #ifndef __SDL_H__
 #define __SDL_H__
 
