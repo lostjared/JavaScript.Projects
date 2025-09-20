@@ -24,12 +24,15 @@ int launch_timer = 0;
 int launch_duration = 60; 
 int ship_launch_y = 0;
 
+int game_over = 0;
+
 void update(void);
 void render(void);
 void draw_launch_sequence(void);
 void draw_countdown_sequence(void);
 void trigger_respawn_sequence(void);
 void draw_score(void);
+void draw_game_over(void);
 
 SDL_Event e;
 int active = 1;
@@ -87,7 +90,21 @@ void update(void) {
                 if(e.key.keysym.sym == SDLK_ESCAPE) 
                     active = 0;
                 
-                if (!launch_sequence && !countdown_sequence) {
+                
+                if(e.key.keysym.sym == SDLK_SPACE && game_over) {
+                
+                    init_ship();
+                    init_projectiles();
+                    init_asteroids();
+                    game_over = 0;
+                    countdown_sequence = 1;
+                    countdown_timer = 0;
+                    countdown_number = 3;
+                    launch_sequence = 0;
+                    return;
+                }
+                
+                if (!launch_sequence && !countdown_sequence && !game_over) {
                     if(e.key.keysym.sym == SDLK_LEFT)
                         keyLeft = true;
                     if(e.key.keysym.sym == SDLK_RIGHT)
@@ -97,7 +114,7 @@ void update(void) {
                 }
                 break;
             case SDL_KEYUP:
-                if (!launch_sequence && !countdown_sequence) {
+                if (!launch_sequence && !countdown_sequence && !game_over) {
                     if(e.key.keysym.sym == SDLK_LEFT)
                         keyLeft = false;
                     if(e.key.keysym.sym == SDLK_RIGHT)
@@ -107,6 +124,12 @@ void update(void) {
                 }
                 break;                          
         }
+    }
+    
+    
+    if (game_over) {
+        render();
+        return;
     }
     
     
@@ -136,18 +159,15 @@ void update(void) {
         return;
     }
     
-    
     if (launch_sequence) {
         launch_timer++;
         
-    
         if (launch_timer < launch_duration / 2) {
             ship_launch_y = WINDOW_H - (launch_timer * (WINDOW_H - the_ship.y) / (launch_duration / 2));
         } else {
             ship_launch_y = the_ship.y; 
         }
         
-    
         if (launch_timer >= launch_duration) {
             launch_sequence = 0;
             launch_timer = 0;
@@ -156,7 +176,6 @@ void update(void) {
         render();
         return;
     }
-    
     
     update_ship();
     update_projectiles();
@@ -171,6 +190,9 @@ void update(void) {
     
         if (the_ship.lives > 0) {
             trigger_respawn_sequence();
+        } else {
+    
+            game_over = 1;
         }
         was_exploding = false;
     } else if (the_ship.exploding) {
@@ -281,18 +303,47 @@ void draw_launch_sequence(void) {
     }
 }
 
+void draw_game_over(void) {
+    
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    for (int i = 0; i < STAR_COUNT; ++i) {
+        stars[i].y += stars[i].speed * 0.2f; 
+        if (stars[i].y >= WINDOW_H) {
+            stars[i].x = rand() % WINDOW_W;
+            stars[i].y = 0;
+            stars[i].speed = 0.5f + (rand() % 100) / 50.0f;
+        }
+        SDL_RenderDrawPoint(renderer, (int)stars[i].x, (int)stars[i].y);
+    }
+    
+    
+    settextcolor(255, 0, 0, 255); 
+    printtext("GAME OVER", 270, 140);
+    
+    
+    char final_score[64];
+    snprintf(final_score, 64, "Final Score: %d", the_ship.score);
+    settextcolor(255, 255, 255, 255); 
+    printtext(final_score, 250, 170);
+    
+    
+    settextcolor(255, 255, 0, 255); 
+    printtext("Press SPACE to begin", 230, 200);
+}
+
 void render(void) {
     SDL_SetRenderTarget(renderer, texture);
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
     
-
-    if (countdown_sequence) {
+    if (game_over) {
+        draw_game_over();
+    } else if (countdown_sequence) {
         draw_countdown_sequence();
     } else if (launch_sequence) {
         draw_launch_sequence();
     } else {
-
+        
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         for (int i = 0; i < STAR_COUNT; ++i) {
             stars[i].y += stars[i].speed;
