@@ -134,10 +134,12 @@ void update_asteroids(void) {
 }
 
 void draw_asteroids(void) {
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    
     for (int i = 0; i < MAX_ASTEROIDS; i++) {
         if (asteroids[i].active) {
+            
+            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+            
+            
             for (int j = 0; j < ASTEROID_VERTICES; j++) {
                 int next = (j + 1) % ASTEROID_VERTICES;
                 
@@ -147,6 +149,59 @@ void draw_asteroids(void) {
                 int y2 = (int)(asteroids[i].y + asteroids[i].vertices[next][1]);
                 
                 SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
+            }
+            
+            
+            SDL_SetRenderDrawColor(renderer, 150, 150, 150, 255);
+            float inner_vertices[ASTEROID_VERTICES][2];
+            for (int j = 0; j < ASTEROID_VERTICES; j++) {
+                inner_vertices[j][0] = asteroids[i].vertices[j][0] * 0.6f;
+                inner_vertices[j][1] = asteroids[i].vertices[j][1] * 0.6f;
+            }
+            for (int j = 0; j < ASTEROID_VERTICES; j++) {
+                int next = (j + 1) % ASTEROID_VERTICES;
+                
+                int x1 = (int)(asteroids[i].x + inner_vertices[j][0]);
+                int y1 = (int)(asteroids[i].y + inner_vertices[j][1]);
+                int x2 = (int)(asteroids[i].x + inner_vertices[next][0]);
+                int y2 = (int)(asteroids[i].y + inner_vertices[next][1]);
+                
+                SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
+            }
+            
+            SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
+            for (int j = 0; j < ASTEROID_VERTICES; j += 2) {
+                int outer_x = (int)(asteroids[i].x + asteroids[i].vertices[j][0]);
+                int outer_y = (int)(asteroids[i].y + asteroids[i].vertices[j][1]);
+                int inner_x = (int)(asteroids[i].x + inner_vertices[j][0]);
+                int inner_y = (int)(asteroids[i].y + inner_vertices[j][1]);
+                
+                SDL_RenderDrawLine(renderer, outer_x, outer_y, inner_x, inner_y);
+            }
+            
+            SDL_SetRenderDrawColor(renderer, 120, 120, 120, 255);
+            
+            int center_x = (int)asteroids[i].x;
+            int center_y = (int)asteroids[i].y;
+            
+            for (int j = 0; j < ASTEROID_VERTICES; j += 4) {
+                int vertex_x = (int)(asteroids[i].x + inner_vertices[j][0]);
+                int vertex_y = (int)(asteroids[i].y + inner_vertices[j][1]);
+                
+                SDL_RenderDrawLine(renderer, center_x, center_y, vertex_x, vertex_y);
+            }
+            
+            SDL_SetRenderDrawColor(renderer, 180, 180, 180, 255);
+            
+            for (int j = 0; j < ASTEROID_VERTICES; j += 2) {
+                int next = (j + 1) % ASTEROID_VERTICES;
+                
+                int outer_x1 = (int)(asteroids[i].x + asteroids[i].vertices[j][0]);
+                int outer_y1 = (int)(asteroids[i].y + asteroids[i].vertices[j][1]);
+                int inner_x2 = (int)(asteroids[i].x + inner_vertices[next][0]);
+                int inner_y2 = (int)(asteroids[i].y + inner_vertices[next][1]);
+                
+                SDL_RenderDrawLine(renderer, outer_x1, outer_y1, inner_x2, inner_y2);
             }
         }
     }
