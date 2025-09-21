@@ -21,6 +21,9 @@ typedef struct {
     bool exploding;           
     int explosion_timer;      
     int score;  
+    int continuous_fire_timer;
+    int overheated;
+    int overheat_cooldown;
 } Ship;
 
 extern Ship the_ship;
@@ -30,6 +33,7 @@ void init_ship(void);
 void draw_ship(void);
 void update_ship(void);
 bool can_fire(void);
+void update_fire_timer(void);
 
 typedef struct {
     float x, y;

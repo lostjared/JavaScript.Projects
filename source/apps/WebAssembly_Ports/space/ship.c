@@ -262,6 +262,9 @@ void init_ship(void) {
     the_ship.exploding = false;
     the_ship.explosion_timer = 0;
     the_ship.score = 0;
+    the_ship.continuous_fire_timer = 0;
+    the_ship.overheated = false;
+    the_ship.overheat_cooldown = 0;
     
     for (int i = 0; i < MAX_PARTICLES; i++) {
         explosion_particles[i].active = false;
@@ -274,20 +277,27 @@ void draw_ship(void) {
         return;
     }
     
+    
     float nose_x = 0, nose_y = -15;
     float left_wing_x = -12, left_wing_y = 8;
     float right_wing_x = 12, right_wing_y = 8;
+    
     float left_engine_x = -8, left_engine_y = 12;
     float right_engine_x = 8, right_engine_y = 12;
     float center_engine_x = 0, center_engine_y = 10;
+    
     float left_detail_x = -6, left_detail_y = 2;
     float right_detail_x = 6, right_detail_y = 2;
+    
     float cockpit_left_x = -3, cockpit_left_y = -8;
     float cockpit_right_x = 3, cockpit_right_y = -8;
     float cockpit_center_x = 0, cockpit_center_y = -5;
+    
     float c = cosf(the_ship.angle);
     float s = sinf(the_ship.angle);
+    
     int vertices[11][2];
+    
     vertices[0][0] = (int)(the_ship.x + (nose_x * c - nose_y * s));
     vertices[0][1] = (int)(the_ship.y + (nose_x * s + nose_y * c));
     
@@ -321,39 +331,66 @@ void draw_ship(void) {
     vertices[10][0] = (int)(the_ship.x + (cockpit_center_x * c - cockpit_center_y * s));
     vertices[10][1] = (int)(the_ship.y + (cockpit_center_x * s + cockpit_center_y * c));
     
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     
-    SDL_RenderDrawLine(renderer, vertices[0][0], vertices[0][1], vertices[1][0], vertices[1][1]); 
-    SDL_RenderDrawLine(renderer, vertices[0][0], vertices[0][1], vertices[2][0], vertices[2][1]); 
-    SDL_RenderDrawLine(renderer, vertices[1][0], vertices[1][1], vertices[2][0], vertices[2][1]); 
+    if (the_ship.overheated) {
     
-    SDL_RenderDrawLine(renderer, vertices[1][0], vertices[1][1], vertices[3][0], vertices[3][1]); 
-    SDL_RenderDrawLine(renderer, vertices[2][0], vertices[2][1], vertices[4][0], vertices[4][1]); 
-    SDL_RenderDrawLine(renderer, vertices[3][0], vertices[3][1], vertices[5][0], vertices[5][1]); 
-    SDL_RenderDrawLine(renderer, vertices[4][0], vertices[4][1], vertices[5][0], vertices[5][1]); 
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    } else if (the_ship.continuous_fire_timer > 120) {
     
-    SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
+        int heat_level = the_ship.continuous_fire_timer - 120;
+        SDL_SetRenderDrawColor(renderer, 255, 255 - (heat_level * 4), 0, 255);
+    } else {
     
-    SDL_RenderDrawLine(renderer, vertices[0][0], vertices[0][1], vertices[6][0], vertices[6][1]); 
-    SDL_RenderDrawLine(renderer, vertices[0][0], vertices[0][1], vertices[7][0], vertices[7][1]); 
-    SDL_RenderDrawLine(renderer, vertices[6][0], vertices[6][1], vertices[7][0], vertices[7][1]); 
-    SDL_RenderDrawLine(renderer, vertices[6][0], vertices[6][1], vertices[1][0], vertices[1][1]); 
-    SDL_RenderDrawLine(renderer, vertices[7][0], vertices[7][1], vertices[2][0], vertices[2][1]); 
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    }
     
     
-    SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255);
-    SDL_RenderDrawLine(renderer, vertices[8][0], vertices[8][1], vertices[9][0], vertices[9][1]); 
-    SDL_RenderDrawLine(renderer, vertices[8][0], vertices[8][1], vertices[10][0], vertices[10][1]); 
-    SDL_RenderDrawLine(renderer, vertices[9][0], vertices[9][1], vertices[10][0], vertices[10][1]); 
+    SDL_RenderDrawLine(renderer, vertices[0][0], vertices[0][1], vertices[1][0], vertices[1][1]);
+    SDL_RenderDrawLine(renderer, vertices[0][0], vertices[0][1], vertices[2][0], vertices[2][1]);
+    SDL_RenderDrawLine(renderer, vertices[1][0], vertices[1][1], vertices[2][0], vertices[2][1]);
+    
+    SDL_RenderDrawLine(renderer, vertices[1][0], vertices[1][1], vertices[3][0], vertices[3][1]);
+    SDL_RenderDrawLine(renderer, vertices[2][0], vertices[2][1], vertices[4][0], vertices[4][1]);
+    SDL_RenderDrawLine(renderer, vertices[3][0], vertices[3][1], vertices[5][0], vertices[5][1]);
+    SDL_RenderDrawLine(renderer, vertices[4][0], vertices[4][1], vertices[5][0], vertices[5][1]);
     
     
-    SDL_SetRenderDrawColor(renderer, 150, 150, 150, 255);
-    SDL_RenderDrawLine(renderer, vertices[10][0], vertices[10][1], vertices[5][0], vertices[5][1]); 
+    if (the_ship.overheated) {
+        SDL_SetRenderDrawColor(renderer, 200, 0, 0, 255);
+    } else if (the_ship.continuous_fire_timer > 120) {
+        int heat_level = the_ship.continuous_fire_timer - 120;
+        SDL_SetRenderDrawColor(renderer, 200, 200 - (heat_level * 3), 0, 255);
+    } else {
+        SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
+    }
     
-
+    SDL_RenderDrawLine(renderer, vertices[0][0], vertices[0][1], vertices[6][0], vertices[6][1]);
+    SDL_RenderDrawLine(renderer, vertices[0][0], vertices[0][1], vertices[7][0], vertices[7][1]);
+    SDL_RenderDrawLine(renderer, vertices[6][0], vertices[6][1], vertices[7][0], vertices[7][1]);
+    SDL_RenderDrawLine(renderer, vertices[6][0], vertices[6][1], vertices[1][0], vertices[1][1]);
+    SDL_RenderDrawLine(renderer, vertices[7][0], vertices[7][1], vertices[2][0], vertices[2][1]);
+    
+    
+    if (the_ship.overheated) {
+        SDL_SetRenderDrawColor(renderer, 0, 128, 128, 255);
+    } else {
+        SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255);
+    }
+    SDL_RenderDrawLine(renderer, vertices[8][0], vertices[8][1], vertices[9][0], vertices[9][1]);
+    SDL_RenderDrawLine(renderer, vertices[8][0], vertices[8][1], vertices[10][0], vertices[10][1]);
+    SDL_RenderDrawLine(renderer, vertices[9][0], vertices[9][1], vertices[10][0], vertices[10][1]);
+    
+    
+    if (the_ship.overheated) {
+        SDL_SetRenderDrawColor(renderer, 100, 0, 0, 255);
+    } else {
+        SDL_SetRenderDrawColor(renderer, 150, 150, 150, 255);
+    }
+    SDL_RenderDrawLine(renderer, vertices[10][0], vertices[10][1], vertices[5][0], vertices[5][1]);
+    
+    
     if (keyThrust) {
-        SDL_SetRenderDrawColor(renderer, 255, 100, 0, 255); 
-        
+        SDL_SetRenderDrawColor(renderer, 255, 100, 0, 255);
         
         int flame1_x = (int)(the_ship.x + ((-6) * c - 18 * s));
         int flame1_y = (int)(the_ship.y + ((-6) * s + 18 * c));
@@ -366,13 +403,13 @@ void draw_ship(void) {
         SDL_RenderDrawLine(renderer, vertices[5][0], vertices[5][1], flame2_x, flame2_y);
         SDL_RenderDrawLine(renderer, vertices[4][0], vertices[4][1], flame3_x, flame3_y);
         
-        
         SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
         int inner_flame_x = (int)(the_ship.x + (0 * c - 20 * s));
         int inner_flame_y = (int)(the_ship.y + (0 * s + 20 * c));
         SDL_RenderDrawLine(renderer, vertices[5][0], vertices[5][1], inner_flame_x, inner_flame_y);
     }
 }
+
 
 void check_asteroid_collisions(void) {
     for (int i = 0; i < MAX_ASTEROIDS; i++) {
@@ -456,6 +493,12 @@ void start_ship_explosion(void) {
         the_ship.exploding = true;
         the_ship.explosion_timer = EXPLOSION_DURATION;
         the_ship.lives--; 
+        
+        
+        the_ship.overheated = false;
+        the_ship.overheat_cooldown = 0;
+        the_ship.continuous_fire_timer = 0;
+        the_ship.burst_count = 0;
         
         for (int i = 0; i < MAX_PARTICLES; i++) {
             explosion_particles[i].x = the_ship.x + ((rand() % 20) - 10);
@@ -551,13 +594,22 @@ void draw_explosion(void) {
 }
 
 bool can_fire(void) {
+    if (the_ship.overheated) {
+        if (the_ship.overheat_cooldown > 0) {
+            the_ship.overheat_cooldown--;
+            return false;
+        } else {
+            the_ship.overheated = false;
+            the_ship.continuous_fire_timer = 0;
+        }
+    }
+    
     if (the_ship.fire_cooldown <= 0) {
         if (the_ship.burst_count < SHOTS_PER_BURST) {
             the_ship.fire_cooldown = FIRE_DELAY;  
             the_ship.burst_count++;
             return true;
         } else {
-            
             the_ship.fire_cooldown = FIRE_COOLDOWN;
             the_ship.burst_count = 0;
             return false;
@@ -683,7 +735,6 @@ void check_and_spawn_asteroids(void) {
 }
 
 void update_ship(void) {
-
     if (the_ship.exploding) return;
     
     if (keyLeft) {
@@ -692,7 +743,6 @@ void update_ship(void) {
     if (keyRight) {
         the_ship.angle += 0.15f; 
     }
-    
     
     if (keyThrust) {
         float thrust = 0.2f; 
@@ -720,5 +770,21 @@ void update_ship(void) {
     
     if (the_ship.fire_cooldown > 0) {
         the_ship.fire_cooldown--;
+    }
+}
+
+void update_fire_timer(void) {
+    const Uint8 *keys = SDL_GetKeyboardState(NULL);
+    
+    if (keys[SDL_SCANCODE_SPACE] && !the_ship.overheated) {
+        the_ship.continuous_fire_timer++;
+        if (the_ship.continuous_fire_timer >= 180) {
+            the_ship.overheated = true;
+            the_ship.overheat_cooldown = 120; 
+            the_ship.continuous_fire_timer = 0;
+            the_ship.burst_count = 0;
+        }
+    } else if (!keys[SDL_SCANCODE_SPACE] && !the_ship.overheated) {
+        the_ship.continuous_fire_timer = 0;
     }
 }

@@ -184,6 +184,7 @@ void update(void) {
     }
     
     update_ship();
+    update_fire_timer();
     update_projectiles();
     update_asteroids();
     update_explosion();
