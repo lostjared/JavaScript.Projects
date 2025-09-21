@@ -44,6 +44,8 @@ typedef struct {
     float radius;
     bool active;
     float vertices[ASTEROID_VERTICES][2];  
+    float rotation_angle;
+    float rotation_speed;
 } Asteroid;
 
 typedef struct {

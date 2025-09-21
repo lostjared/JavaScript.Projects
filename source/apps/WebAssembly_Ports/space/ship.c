@@ -120,11 +120,9 @@ void init_asteroids(void) {
 void update_asteroids(void) {
     for (int i = 0; i < MAX_ASTEROIDS; i++) {
         if (asteroids[i].active) {
-            
             asteroids[i].x += asteroids[i].vx;
             asteroids[i].y += asteroids[i].vy;
-            
-            
+            asteroids[i].rotation_angle += asteroids[i].rotation_speed;
             if (asteroids[i].x < 0) asteroids[i].x += SCALE_W;
             if (asteroids[i].x >= SCALE_W) asteroids[i].x -= SCALE_W;
             if (asteroids[i].y < 0) asteroids[i].y += SCALE_H;
@@ -137,27 +135,43 @@ void draw_asteroids(void) {
     for (int i = 0; i < MAX_ASTEROIDS; i++) {
         if (asteroids[i].active) {
             
+            float cos_rot = cosf(asteroids[i].rotation_angle);
+            float sin_rot = sinf(asteroids[i].rotation_angle);
+            
+            
+            float rotated_vertices[ASTEROID_VERTICES][2];
+            for (int j = 0; j < ASTEROID_VERTICES; j++) {
+                float orig_x = asteroids[i].vertices[j][0];
+                float orig_y = asteroids[i].vertices[j][1];
+                
+                rotated_vertices[j][0] = orig_x * cos_rot - orig_y * sin_rot;
+                rotated_vertices[j][1] = orig_x * sin_rot + orig_y * cos_rot;
+            }
+            
+            
             SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
             
             
             for (int j = 0; j < ASTEROID_VERTICES; j++) {
                 int next = (j + 1) % ASTEROID_VERTICES;
                 
-                int x1 = (int)(asteroids[i].x + asteroids[i].vertices[j][0]);
-                int y1 = (int)(asteroids[i].y + asteroids[i].vertices[j][1]);
-                int x2 = (int)(asteroids[i].x + asteroids[i].vertices[next][0]);
-                int y2 = (int)(asteroids[i].y + asteroids[i].vertices[next][1]);
+                int x1 = (int)(asteroids[i].x + rotated_vertices[j][0]);
+                int y1 = (int)(asteroids[i].y + rotated_vertices[j][1]);
+                int x2 = (int)(asteroids[i].x + rotated_vertices[next][0]);
+                int y2 = (int)(asteroids[i].y + rotated_vertices[next][1]);
                 
                 SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
             }
             
             
             SDL_SetRenderDrawColor(renderer, 150, 150, 150, 255);
+            
             float inner_vertices[ASTEROID_VERTICES][2];
             for (int j = 0; j < ASTEROID_VERTICES; j++) {
-                inner_vertices[j][0] = asteroids[i].vertices[j][0] * 0.6f;
-                inner_vertices[j][1] = asteroids[i].vertices[j][1] * 0.6f;
+                inner_vertices[j][0] = rotated_vertices[j][0] * 0.6f;
+                inner_vertices[j][1] = rotated_vertices[j][1] * 0.6f;
             }
+            
             for (int j = 0; j < ASTEROID_VERTICES; j++) {
                 int next = (j + 1) % ASTEROID_VERTICES;
                 
@@ -170,9 +184,10 @@ void draw_asteroids(void) {
             }
             
             SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
+            
             for (int j = 0; j < ASTEROID_VERTICES; j += 2) {
-                int outer_x = (int)(asteroids[i].x + asteroids[i].vertices[j][0]);
-                int outer_y = (int)(asteroids[i].y + asteroids[i].vertices[j][1]);
+                int outer_x = (int)(asteroids[i].x + rotated_vertices[j][0]);
+                int outer_y = (int)(asteroids[i].y + rotated_vertices[j][1]);
                 int inner_x = (int)(asteroids[i].x + inner_vertices[j][0]);
                 int inner_y = (int)(asteroids[i].y + inner_vertices[j][1]);
                 
@@ -196,8 +211,8 @@ void draw_asteroids(void) {
             for (int j = 0; j < ASTEROID_VERTICES; j += 2) {
                 int next = (j + 1) % ASTEROID_VERTICES;
                 
-                int outer_x1 = (int)(asteroids[i].x + asteroids[i].vertices[j][0]);
-                int outer_y1 = (int)(asteroids[i].y + asteroids[i].vertices[j][1]);
+                int outer_x1 = (int)(asteroids[i].x + rotated_vertices[j][0]);
+                int outer_y1 = (int)(asteroids[i].y + rotated_vertices[j][1]);
                 int inner_x2 = (int)(asteroids[i].x + inner_vertices[next][0]);
                 int inner_y2 = (int)(asteroids[i].y + inner_vertices[next][1]);
                 
@@ -217,6 +232,10 @@ void spawn_asteroid(float x, float y, float vx, float vy, float radius) {
             asteroids[i].radius = radius;
             asteroids[i].active = true;
             
+            asteroids[i].rotation_angle = 0.0f;
+            asteroids[i].rotation_speed = ((rand() % 100) - 50) / 1000.0f; 
+         
+
             for (int j = 0; j < ASTEROID_VERTICES; j++) {
                 float angle = (float)j / ASTEROID_VERTICES * 2 * PI;
                 
