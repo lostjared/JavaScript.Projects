@@ -200,39 +200,103 @@ void draw_ship(void) {
         return;
     }
     
-    float lx1 = 0, ly1 = -12;
-    float lx2 = -8, ly2 = 8;
-    float lx3 = 8, ly3 = 8; 
-    
-    int x1, y1, x2, y2, x3, y3;
+    float nose_x = 0, nose_y = -15;
+    float left_wing_x = -12, left_wing_y = 8;
+    float right_wing_x = 12, right_wing_y = 8;
+    float left_engine_x = -8, left_engine_y = 12;
+    float right_engine_x = 8, right_engine_y = 12;
+    float center_engine_x = 0, center_engine_y = 10;
+    float left_detail_x = -6, left_detail_y = 2;
+    float right_detail_x = 6, right_detail_y = 2;
+    float cockpit_left_x = -3, cockpit_left_y = -8;
+    float cockpit_right_x = 3, cockpit_right_y = -8;
+    float cockpit_center_x = 0, cockpit_center_y = -5;
     float c = cosf(the_ship.angle);
     float s = sinf(the_ship.angle);
+    int vertices[11][2];
+    vertices[0][0] = (int)(the_ship.x + (nose_x * c - nose_y * s));
+    vertices[0][1] = (int)(the_ship.y + (nose_x * s + nose_y * c));
     
+    vertices[1][0] = (int)(the_ship.x + (left_wing_x * c - left_wing_y * s));
+    vertices[1][1] = (int)(the_ship.y + (left_wing_x * s + left_wing_y * c));
     
-    x1 = (int)(the_ship.x + (lx1 * c - ly1 * s));
-    y1 = (int)(the_ship.y + (lx1 * s + ly1 * c));
-    x2 = (int)(the_ship.x + (lx2 * c - ly2 * s));
-    y2 = (int)(the_ship.y + (lx2 * s + ly2 * c));
-    x3 = (int)(the_ship.x + (lx3 * c - ly3 * s));
-    y3 = (int)(the_ship.y + (lx3 * s + ly3 * c));
+    vertices[2][0] = (int)(the_ship.x + (right_wing_x * c - right_wing_y * s));
+    vertices[2][1] = (int)(the_ship.y + (right_wing_x * s + right_wing_y * c));
     
+    vertices[3][0] = (int)(the_ship.x + (left_engine_x * c - left_engine_y * s));
+    vertices[3][1] = (int)(the_ship.y + (left_engine_x * s + left_engine_y * c));
+    
+    vertices[4][0] = (int)(the_ship.x + (right_engine_x * c - right_engine_y * s));
+    vertices[4][1] = (int)(the_ship.y + (right_engine_x * s + right_engine_y * c));
+    
+    vertices[5][0] = (int)(the_ship.x + (center_engine_x * c - center_engine_y * s));
+    vertices[5][1] = (int)(the_ship.y + (center_engine_x * s + center_engine_y * c));
+    
+    vertices[6][0] = (int)(the_ship.x + (left_detail_x * c - left_detail_y * s));
+    vertices[6][1] = (int)(the_ship.y + (left_detail_x * s + left_detail_y * c));
+    
+    vertices[7][0] = (int)(the_ship.x + (right_detail_x * c - right_detail_y * s));
+    vertices[7][1] = (int)(the_ship.y + (right_detail_x * s + right_detail_y * c));
+    
+    vertices[8][0] = (int)(the_ship.x + (cockpit_left_x * c - cockpit_left_y * s));
+    vertices[8][1] = (int)(the_ship.y + (cockpit_left_x * s + cockpit_left_y * c));
+    
+    vertices[9][0] = (int)(the_ship.x + (cockpit_right_x * c - cockpit_right_y * s));
+    vertices[9][1] = (int)(the_ship.y + (cockpit_right_x * s + cockpit_right_y * c));
+    
+    vertices[10][0] = (int)(the_ship.x + (cockpit_center_x * c - cockpit_center_y * s));
+    vertices[10][1] = (int)(the_ship.y + (cockpit_center_x * s + cockpit_center_y * c));
     
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
-    SDL_RenderDrawLine(renderer, x2, y2, x3, y3);
-    SDL_RenderDrawLine(renderer, x3, y3, x1, y1);
+    
+    SDL_RenderDrawLine(renderer, vertices[0][0], vertices[0][1], vertices[1][0], vertices[1][1]); 
+    SDL_RenderDrawLine(renderer, vertices[0][0], vertices[0][1], vertices[2][0], vertices[2][1]); 
+    SDL_RenderDrawLine(renderer, vertices[1][0], vertices[1][1], vertices[2][0], vertices[2][1]); 
+    
+    SDL_RenderDrawLine(renderer, vertices[1][0], vertices[1][1], vertices[3][0], vertices[3][1]); 
+    SDL_RenderDrawLine(renderer, vertices[2][0], vertices[2][1], vertices[4][0], vertices[4][1]); 
+    SDL_RenderDrawLine(renderer, vertices[3][0], vertices[3][1], vertices[5][0], vertices[5][1]); 
+    SDL_RenderDrawLine(renderer, vertices[4][0], vertices[4][1], vertices[5][0], vertices[5][1]); 
+    
+    SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
+    
+    SDL_RenderDrawLine(renderer, vertices[0][0], vertices[0][1], vertices[6][0], vertices[6][1]); 
+    SDL_RenderDrawLine(renderer, vertices[0][0], vertices[0][1], vertices[7][0], vertices[7][1]); 
+    SDL_RenderDrawLine(renderer, vertices[6][0], vertices[6][1], vertices[7][0], vertices[7][1]); 
+    SDL_RenderDrawLine(renderer, vertices[6][0], vertices[6][1], vertices[1][0], vertices[1][1]); 
+    SDL_RenderDrawLine(renderer, vertices[7][0], vertices[7][1], vertices[2][0], vertices[2][1]); 
     
     
+    SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255);
+    SDL_RenderDrawLine(renderer, vertices[8][0], vertices[8][1], vertices[9][0], vertices[9][1]); 
+    SDL_RenderDrawLine(renderer, vertices[8][0], vertices[8][1], vertices[10][0], vertices[10][1]); 
+    SDL_RenderDrawLine(renderer, vertices[9][0], vertices[9][1], vertices[10][0], vertices[10][1]); 
+    
+    
+    SDL_SetRenderDrawColor(renderer, 150, 150, 150, 255);
+    SDL_RenderDrawLine(renderer, vertices[10][0], vertices[10][1], vertices[5][0], vertices[5][1]); 
+    
+
     if (keyThrust) {
-        SDL_SetRenderDrawColor(renderer, 255, 160, 0, 255);
-        x1 = (int)(the_ship.x + ((-4) * c - 8 * s));
-        y1 = (int)(the_ship.y + ((-4) * s + 8 * c));
-        x2 = (int)(the_ship.x + (0 * c - 16 * s));
-        y2 = (int)(the_ship.y + (0 * s + 16 * c));
-        x3 = (int)(the_ship.x + (4 * c - 8 * s));
-        y3 = (int)(the_ship.y + (4 * s + 8 * c));
-        SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
-        SDL_RenderDrawLine(renderer, x2, y2, x3, y3);
+        SDL_SetRenderDrawColor(renderer, 255, 100, 0, 255); 
+        
+        
+        int flame1_x = (int)(the_ship.x + ((-6) * c - 18 * s));
+        int flame1_y = (int)(the_ship.y + ((-6) * s + 18 * c));
+        int flame2_x = (int)(the_ship.x + (0 * c - 22 * s));
+        int flame2_y = (int)(the_ship.y + (0 * s + 22 * c));
+        int flame3_x = (int)(the_ship.x + (6 * c - 18 * s));
+        int flame3_y = (int)(the_ship.y + (6 * s + 18 * c));
+        
+        SDL_RenderDrawLine(renderer, vertices[3][0], vertices[3][1], flame1_x, flame1_y);
+        SDL_RenderDrawLine(renderer, vertices[5][0], vertices[5][1], flame2_x, flame2_y);
+        SDL_RenderDrawLine(renderer, vertices[4][0], vertices[4][1], flame3_x, flame3_y);
+        
+        
+        SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
+        int inner_flame_x = (int)(the_ship.x + (0 * c - 20 * s));
+        int inner_flame_y = (int)(the_ship.y + (0 * s + 20 * c));
+        SDL_RenderDrawLine(renderer, vertices[5][0], vertices[5][1], inner_flame_x, inner_flame_y);
     }
 }
 
