@@ -1,3 +1,4 @@
+/* coded by Jared Bruni */
 #include "ship.h"
 #include "sdl.h"
 
