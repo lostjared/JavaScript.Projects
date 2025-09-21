@@ -1,4 +1,3 @@
-/* coded by Jared Bruni */
 #include "ship.h"
 #include "sdl.h"
 
@@ -594,14 +593,9 @@ void draw_explosion(void) {
 }
 
 bool can_fire(void) {
+    
     if (the_ship.overheated) {
-        if (the_ship.overheat_cooldown > 0) {
-            the_ship.overheat_cooldown--;
-            return false;
-        } else {
-            the_ship.overheated = false;
-            the_ship.continuous_fire_timer = 0;
-        }
+        return false;
     }
     
     if (the_ship.fire_cooldown <= 0) {
@@ -778,13 +772,32 @@ void update_fire_timer(void) {
     
     if (keys[SDL_SCANCODE_SPACE] && !the_ship.overheated) {
         the_ship.continuous_fire_timer++;
+        the_ship.overheat_cooldown = 0;
+        
         if (the_ship.continuous_fire_timer >= 180) {
             the_ship.overheated = true;
-            the_ship.overheat_cooldown = 120; 
+            the_ship.overheat_cooldown = 0; 
             the_ship.continuous_fire_timer = 0;
             the_ship.burst_count = 0;
         }
-    } else if (!keys[SDL_SCANCODE_SPACE] && !the_ship.overheated) {
-        the_ship.continuous_fire_timer = 0;
+    } else if (keys[SDL_SCANCODE_SPACE] && the_ship.overheated) {
+        the_ship.overheat_cooldown = 0;
+    } else if (!keys[SDL_SCANCODE_SPACE]) {
+        if (the_ship.overheated) {
+            the_ship.overheat_cooldown++;
+            
+            if (the_ship.overheat_cooldown >= 180) {
+                the_ship.overheated = false;
+                the_ship.overheat_cooldown = 0;
+                the_ship.continuous_fire_timer = 0;
+            }
+        } else {
+            if (the_ship.continuous_fire_timer > 0) {
+                the_ship.continuous_fire_timer--;
+                if (the_ship.continuous_fire_timer < 0) {
+                    the_ship.continuous_fire_timer = 0;
+                }
+            }
+        }
     }
 }
