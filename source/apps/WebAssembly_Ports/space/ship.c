@@ -2,7 +2,7 @@
 #include "sdl.h"
 
 #define MAX_PROJECTILES 50
-#define MAX_ASTEROIDS 20
+#define MAX_ASTEROIDS 30
 #define PROJECTILE_SPEED 5.0f
 #define PROJECTILE_LIFETIME 60  
 #define FIRE_COOLDOWN 5        
