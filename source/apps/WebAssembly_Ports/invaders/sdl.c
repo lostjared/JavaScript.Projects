@@ -8,9 +8,9 @@ TTF_Font *font = NULL;
 const char *getPath(const char *src) {
     static char path[4096];
 #ifndef __EMSCRIPTEN__
-    sprintf(path, "%s%s", "./assets/", src);
+    snprintf(path, 4095, "%s%s", "./assets/", src);
 #else
-    sprintf(path, "/assets/%s", src);
+    snprintf(path, 4095, "/assets/%s", src);
 #endif
     return path;
 }
