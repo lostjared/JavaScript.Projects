@@ -319,6 +319,9 @@ void draw_game_over(void) {
 }
 
 void render(void) {
+    static Uint32 last_time = 0;
+    Uint32 current_time = SDL_GetTicks();
+    
     SDL_SetRenderTarget(renderer, texture);
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
@@ -347,15 +350,16 @@ void render(void) {
         draw_explosion();
         draw_score(); 
     }
-    
     SDL_SetRenderTarget(renderer, NULL);
-    
-    
     SDL_Rect destRect = {0, 0, WINDOW_SX, WINDOW_SY};
     SDL_RenderCopy(renderer, texture, NULL, &destRect);
     SDL_RenderPresent(renderer);
-
-    SDL_Delay(16);
+    const Uint32 target_frame_time = 1000 / 60; 
+    Uint32 frame_time = current_time - last_time;
+    if (frame_time < target_frame_time) {
+        SDL_Delay(target_frame_time - frame_time);
+    }
+    last_time = SDL_GetTicks();
 }
 
 void draw_score(void) {
