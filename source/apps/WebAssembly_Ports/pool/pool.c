@@ -126,16 +126,21 @@ void update_stick(struct Stick *stick) {
 void update_ball(struct Ball *ball) {
     if (!ball->moving) return;
     
+    
+    ball->just_stopped = false;
+    
+    
     ball->x += ball->vx;
     ball->y += ball->vy;
     
+    
     if (ball->x - ball->radius <= 0 || ball->x + ball->radius >= WINDOW_W) {
-        ball->vx = -ball->vx * 0.8f; 
+        ball->vx = -ball->vx * 0.8f;
         ball->x = (ball->x - ball->radius <= 0) ? ball->radius : WINDOW_W - ball->radius;
     }
     
     if (ball->y - ball->radius <= 0 || ball->y + ball->radius >= WINDOW_H) {
-        ball->vy = -ball->vy * 0.8f; 
+        ball->vy = -ball->vy * 0.8f;
         ball->y = (ball->y - ball->radius <= 0) ? ball->radius : WINDOW_H - ball->radius;
     }
     
@@ -344,8 +349,7 @@ void realign_stick_with_ball(struct Stick *stick, struct Ball *ball) {
 }
 
 void check_win_condition(struct Ball *ball, struct Target *target) {
-    
-    if (target->ball_in_target && !ball->moving && ball->just_stopped) {
+    if (target->ball_in_target && !ball->moving && !showing_win_screen) {
         game_won = true;
         showing_win_screen = true;
     }

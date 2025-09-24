@@ -29,6 +29,7 @@ void reset_game(struct Stick *stick, struct Ball *ball, struct Target *target) {
     
     init_stick(stick);
     init_ball(ball);
+    init_target(target);  
     init_bumpers(bumpers); 
 }
 
@@ -37,12 +38,10 @@ int main(int argc, char **argv) {
     if (!initSDL("Pool Game", WINDOW_W, WINDOW_H, WINDOW_SX, WINDOW_SY)) {
         return 1;
     }
-    
     init_stick(&stick);
     init_ball(&ball);
     init_target(&target);
     init_bumpers(bumpers); 
-    
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop(update, 0, 1);
 #else
@@ -50,7 +49,6 @@ int main(int argc, char **argv) {
         update();
     }
 #endif
-    
     releaseSDL();
     return 0;
 }
@@ -69,6 +67,18 @@ void update(void) {
             return;
         }
         
+        // Handle restart when on win screen
+        if (showing_win_screen && e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_r) {
+            reset_game(&stick, &ball, &target);
+            return;
+        }
+        
+        // Don't process game input if showing win screen
+        if (showing_win_screen) {
+            render();
+            return;
+        }
+        
         if (e.type == SDL_KEYUP && e.key.keysym.sym == SDLK_SPACE) {
             if (space_was_pressed && stick.charging) {
                 hit_ball(&stick, &ball);
@@ -80,7 +90,6 @@ void update(void) {
             space_was_pressed = true;
         }
     }
-    
     
     if (showing_win_screen) {
         render();
@@ -106,19 +115,25 @@ void render(void) {
     static Uint32 last_time = 0;
     Uint32 current_time = SDL_GetTicks();
 
-    SDL_SetRenderDrawColor(renderer, 0, 100, 0, 255); 
     SDL_SetRenderTarget(renderer, texture);
-    SDL_RenderClear(renderer);
+    
+    if (showing_win_screen) {
+        draw_win_screen();
+    } else {
+        SDL_SetRenderDrawColor(renderer, 0, 100, 0, 255); 
+        SDL_RenderClear(renderer);
 
-    draw_bumpers(bumpers);
-    draw_target(&target);
-    draw_ball(&ball);
-    draw_stick(&stick);
-    draw_ui(&stick, &target);
+        draw_bumpers(bumpers);
+        draw_target(&target);
+        draw_ball(&ball);
+        draw_stick(&stick);
+        draw_ui(&stick, &target);
+    }
     
     SDL_SetRenderTarget(renderer, NULL);
     SDL_RenderCopy(renderer, texture, NULL, NULL);
     SDL_RenderPresent(renderer);
+    
     const Uint32 target_frame_time = 1000 / 60; 
     Uint32 frame_time = current_time - last_time;
     if (frame_time < target_frame_time) {
