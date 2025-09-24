@@ -39,11 +39,66 @@ void init_ball(struct Ball *ball) {
 
 void init_target(struct Target *target) {
     memset(target, 0, sizeof(struct Target));
-    target->x = WINDOW_W - 120;
-    target->y = 50;
-    target->width = 100;
-    target->height = 100;
+    target->width = 75;
+    target->height = 75;
     target->ball_in_target = false;
+    
+    bool valid_position = false;
+    int attempts = 0;
+    
+    while (!valid_position && attempts < 50) {
+        target->x = 20 + rand() % (WINDOW_W - (int)target->width - 40);
+        target->y = 20 + rand() % (WINDOW_H - (int)target->height - 40);
+        valid_position = true;
+        float center_x = WINDOW_W / 2;
+        float center_y = WINDOW_H / 2;
+        float target_center_x = target->x + target->width / 2;
+        float target_center_y = target->y + target->height / 2;
+        
+        float dist_from_center = sqrtf((target_center_x - center_x) * (target_center_x - center_x) + 
+                                      (target_center_y - center_y) * (target_center_y - center_y));
+        
+        if (dist_from_center < 120.0f) {
+            valid_position = false;
+            attempts++;
+            continue;
+        }
+        
+        for (int i = 0; i < MAX_BUMPERS; i++) {
+            float bumper_dist_x = fabs(target_center_x - bumpers[i].x);
+            float bumper_dist_y = fabs(target_center_y - bumpers[i].y);
+            
+            if (bumper_dist_x < (target->width/2 + bumpers[i].radius + 20) &&
+                bumper_dist_y < (target->height/2 + bumpers[i].radius + 20)) {
+                valid_position = false;
+                break;
+            }
+        }
+        
+        attempts++;
+    }
+    
+    if (!valid_position) {
+        int corner = rand() % 4;
+        switch (corner) {
+            case 0: 
+                target->x = 20;
+                target->y = 20;
+                break;
+            case 1: 
+                target->x = WINDOW_W - target->width - 20;
+                target->y = 20;
+                break;
+            case 2: 
+                target->x = 20;
+                target->y = WINDOW_H - target->height - 20;
+                break;
+            case 3: 
+                target->x = WINDOW_W - target->width - 20;
+                target->y = WINDOW_H - target->height - 20;
+                break;
+        }
+    }
 }
 
 void init_bumpers(struct Bumper bumpers[]) {

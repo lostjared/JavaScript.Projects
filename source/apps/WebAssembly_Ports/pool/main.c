@@ -34,7 +34,7 @@ void reset_game(struct Stick *stick, struct Ball *ball, struct Target *target) {
 }
 
 int main(int argc, char **argv) {
-    srand(time(0));
+    srand(time(NULL));
     if (!initSDL("Pool Game", WINDOW_W, WINDOW_H, WINDOW_SX, WINDOW_SY)) {
         return 1;
     }
