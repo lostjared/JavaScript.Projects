@@ -65,5 +65,6 @@ void reset_game(struct Stick *stick, struct Ball *ball, struct Target *target);
 void draw_win_screen(void);
 void realign_stick_with_ball(struct Stick *stick, struct Ball *ball);
 void check_win_condition(struct Ball *ball, struct Target *target);
+void ensure_bumpers_avoid_target(struct Bumper bumpers[], struct Target *target);
 
 #endif

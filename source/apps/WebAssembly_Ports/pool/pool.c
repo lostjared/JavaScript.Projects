@@ -124,18 +124,7 @@ void init_bumpers(struct Bumper bumpers[]) {
                 continue;
             }
             
-            float target_x = WINDOW_W - 120;
-            float target_y = 50;
-            float target_width = 100;
-            float target_height = 100;
-            
-            if (bumpers[i].x >= target_x - 40 && bumpers[i].x <= target_x + target_width + 40 &&
-                bumpers[i].y >= target_y - 40 && bumpers[i].y <= target_y + target_height + 40) {
-                valid_position = false;
-                attempts++;
-                continue;
-            }
-            
+            // Check distance from other bumpers
             for (int j = 0; j < i; j++) {
                 float dist = sqrtf((bumpers[i].x - bumpers[j].x) * (bumpers[i].x - bumpers[j].x) + 
                                   (bumpers[i].y - bumpers[j].y) * (bumpers[i].y - bumpers[j].y));
@@ -152,6 +141,99 @@ void init_bumpers(struct Bumper bumpers[]) {
             bumpers[i].x = 100 + (i * 150);
             bumpers[i].y = 100 + ((i % 2) * 200);
             bumpers[i].radius = 15.0f;
+        }
+    }
+}
+void ensure_bumpers_avoid_target(struct Bumper bumpers[], struct Target *target) {
+    for (int i = 0; i < MAX_BUMPERS; i++) {
+        bool needs_relocation = false;
+        
+
+        float buffer = 30.0f; 
+        
+        if (bumpers[i].x >= target->x - buffer && 
+            bumpers[i].x <= target->x + target->width + buffer &&
+            bumpers[i].y >= target->y - buffer && 
+            bumpers[i].y <= target->y + target->height + buffer) {
+            needs_relocation = true;
+        }
+        
+        if (needs_relocation) {
+
+            bool found_new_position = false;
+            int attempts = 0;
+            
+            while (!found_new_position && attempts < 30) {
+                float new_x = 60 + rand() % (WINDOW_W - 120);
+                float new_y = 60 + rand() % (WINDOW_H - 120);
+                
+            
+                float center_x = WINDOW_W / 2;
+                float center_y = WINDOW_H / 2;
+                float dist_from_center = sqrtf((new_x - center_x) * (new_x - center_x) + 
+                                              (new_y - center_y) * (new_y - center_y));
+                
+                if (dist_from_center < 80.0f) {
+                    attempts++;
+                    continue;
+                }
+                
+            
+                if (new_x >= target->x - buffer && 
+                    new_x <= target->x + target->width + buffer &&
+                    new_y >= target->y - buffer && 
+                    new_y <= target->y + target->height + buffer) {
+                    attempts++;
+                    continue;
+                }
+                
+            
+                bool too_close_to_other = false;
+                for (int j = 0; j < MAX_BUMPERS; j++) {
+                    if (i != j) {
+                        float dist = sqrtf((new_x - bumpers[j].x) * (new_x - bumpers[j].x) + 
+                                          (new_y - bumpers[j].y) * (new_y - bumpers[j].y));
+                        if (dist < 60.0f) {
+                            too_close_to_other = true;
+                            break;
+                        }
+                    }
+                }
+                
+                if (!too_close_to_other) {
+                    bumpers[i].x = new_x;
+                    bumpers[i].y = new_y;
+                    found_new_position = true;
+                } else {
+                    attempts++;
+                }
+            }
+            
+            if (!found_new_position) {
+                float corners[4][2] = {
+                    {100, 100},                          
+                    {WINDOW_W - 100, 100},               
+                    {100, WINDOW_H - 100},               
+                    {WINDOW_W - 100, WINDOW_H - 100}     
+                };
+                
+                
+                float max_dist = 0;
+                int best_corner = 0;
+                for (int c = 0; c < 4; c++) {
+                    float target_center_x = target->x + target->width / 2;
+                    float target_center_y = target->y + target->height / 2;
+                    float dist = sqrtf((corners[c][0] - target_center_x) * (corners[c][0] - target_center_x) +
+                                      (corners[c][1] - target_center_y) * (corners[c][1] - target_center_y));
+                    if (dist > max_dist) {
+                        max_dist = dist;
+                        best_corner = c;
+                    }
+                }
+                
+                bumpers[i].x = corners[best_corner][0] + (i * 20); 
+                bumpers[i].y = corners[best_corner][1] + ((i % 2) * 20);
+            }
         }
     }
 }

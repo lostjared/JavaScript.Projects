@@ -29,8 +29,9 @@ void reset_game(struct Stick *stick, struct Ball *ball, struct Target *target) {
     
     init_stick(stick);
     init_ball(ball);
-    init_target(target);  
-    init_bumpers(bumpers); 
+    init_bumpers(bumpers);  
+    init_target(target);    
+    ensure_bumpers_avoid_target(bumpers, target); 
 }
 
 int main(int argc, char **argv) {
@@ -42,6 +43,7 @@ int main(int argc, char **argv) {
     init_ball(&ball);
     init_target(&target);
     init_bumpers(bumpers); 
+    ensure_bumpers_avoid_target(bumpers, &target); 
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop(update, 0, 1);
 #else
@@ -67,13 +69,11 @@ void update(void) {
             return;
         }
         
-        // Handle restart when on win screen
         if (showing_win_screen && e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_r) {
             reset_game(&stick, &ball, &target);
             return;
         }
         
-        // Don't process game input if showing win screen
         if (showing_win_screen) {
             render();
             return;
