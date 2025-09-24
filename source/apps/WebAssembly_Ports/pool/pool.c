@@ -101,7 +101,7 @@ void init_target(struct Target *target) {
     }
 }
 
-void init_bumpers(struct Bumper bumpers[]) {
+void init_bumpers(struct Bumper *bumpers) {
     for (int i = 0; i < MAX_BUMPERS; i++) {
         bool valid_position = false;
         int attempts = 0;
@@ -144,7 +144,7 @@ void init_bumpers(struct Bumper bumpers[]) {
         }
     }
 }
-void ensure_bumpers_avoid_target(struct Bumper bumpers[], struct Target *target) {
+void ensure_bumpers_avoid_target(struct Bumper *bumpers, struct Target *target) {
     for (int i = 0; i < MAX_BUMPERS; i++) {
         bool needs_relocation = false;
         
@@ -387,7 +387,7 @@ void draw_target(struct Target *target) {
     SDL_RenderDrawRect(renderer, &rect);
 }
 
-void draw_bumpers(struct Bumper bumpers[]) {
+void draw_bumpers(struct Bumper *bumpers) {
     for (int i = 0; i < MAX_BUMPERS; i++) {
         SDL_SetRenderDrawColor(renderer, 0, 100, 255, 255);
         
@@ -411,7 +411,7 @@ void draw_bumpers(struct Bumper bumpers[]) {
     }
 }
 
-void check_ball_bumper_collision(struct Ball *ball, struct Bumper bumpers[]) {
+void check_ball_bumper_collision(struct Ball *ball, struct Bumper *bumpers) {
     if (!ball->moving) return;
     
     for (int i = 0; i < MAX_BUMPERS; i++) {
