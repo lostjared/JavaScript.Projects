@@ -18,6 +18,7 @@ struct Target target;
 
 SDL_Event e;
 int active = 1;
+struct Bumper *bumpers_arr = NULL;
 
 void update(void);
 void render(void);
@@ -29,9 +30,9 @@ void reset_game(struct Stick *stick, struct Ball *ball, struct Target *target) {
     
     init_stick(stick);
     init_ball(ball);
-    init_bumpers(bumpers);  
-    init_target(target);    
-    ensure_bumpers_avoid_target(bumpers, target); 
+    init_bumpers(&bumpers_arr);
+    init_target(bumpers_arr, target);    
+    ensure_bumpers_avoid_target(bumpers_arr, target); 
 }
 
 int main(int argc, char **argv) {
@@ -41,9 +42,9 @@ int main(int argc, char **argv) {
     }
     init_stick(&stick);
     init_ball(&ball);
-    init_target(&target);
-    init_bumpers(bumpers); 
-    ensure_bumpers_avoid_target(bumpers, &target); 
+    init_bumpers(&bumpers_arr); 
+    init_target(bumpers_arr, &target);
+    ensure_bumpers_avoid_target(bumpers_arr, &target); 
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop(update, 0, 1);
 #else
@@ -51,6 +52,8 @@ int main(int argc, char **argv) {
         update();
     }
 #endif
+    if(bumpers_arr != NULL)
+        free(bumpers_arr);
     releaseSDL();
     return 0;
 }
@@ -98,7 +101,7 @@ void update(void) {
     
     update_stick(&stick);
     update_ball(&ball);
-    check_ball_bumper_collision(&ball, bumpers); 
+    check_ball_bumper_collision(&ball, bumpers_arr); 
     
     if (ball.just_stopped) {
         realign_stick_with_ball(&stick, &ball);
@@ -123,7 +126,7 @@ void render(void) {
         SDL_SetRenderDrawColor(renderer, 0, 100, 0, 255); 
         SDL_RenderClear(renderer);
 
-        draw_bumpers(bumpers);
+        draw_bumpers(bumpers_arr);
         draw_target(&target);
         draw_ball(&ball);
         draw_stick(&stick);

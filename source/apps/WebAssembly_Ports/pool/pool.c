@@ -13,8 +13,8 @@
 int shot_count = 0;
 bool game_won = false;
 bool showing_win_screen = false;
+int MAX_BUMPERS = 4;
 
-struct Bumper bumpers[MAX_BUMPERS];
 
 void init_stick(struct Stick *stick) {
     memset(stick, 0, sizeof(struct Stick));
@@ -37,7 +37,7 @@ void init_ball(struct Ball *ball) {
     ball->moving = false;
 }
 
-void init_target(struct Target *target) {
+void init_target(struct Bumper *bumpers, struct Target *target) {
     memset(target, 0, sizeof(struct Target));
     target->width = 75;
     target->height = 75;
@@ -101,22 +101,29 @@ void init_target(struct Target *target) {
     }
 }
 
-void init_bumpers(struct Bumper *bumpers) {
+void init_bumpers(struct Bumper **bumpers) {
+    if(*bumpers != NULL) {
+        free(*bumpers);
+        *bumpers = NULL;
+        MAX_BUMPERS ++;
+    }
+    *bumpers = (struct Bumper *)malloc(sizeof(struct Bumper) * MAX_BUMPERS);
+    
     for (int i = 0; i < MAX_BUMPERS; i++) {
         bool valid_position = false;
         int attempts = 0;
         
         while (!valid_position && attempts < 50) {
-            bumpers[i].x = 60 + rand() % (WINDOW_W - 120);
-            bumpers[i].y = 60 + rand() % (WINDOW_H - 120);
-            bumpers[i].radius = 15.0f;
+            (*bumpers)[i].x = 60 + rand() % (WINDOW_W - 120);
+            (*bumpers)[i].y = 60 + rand() % (WINDOW_H - 120);
+            (*bumpers)[i].radius = 15.0f;
             
             valid_position = true;
             
             float center_x = WINDOW_W / 2;
             float center_y = WINDOW_H / 2;
-            float dist_from_center = sqrtf((bumpers[i].x - center_x) * (bumpers[i].x - center_x) + 
-                                          (bumpers[i].y - center_y) * (bumpers[i].y - center_y));
+            float dist_from_center = sqrtf(((*bumpers)[i].x - center_x) * ((*bumpers)[i].x - center_x) + 
+                                          ((*bumpers)[i].y - center_y) * ((*bumpers)[i].y - center_y));
             
             if (dist_from_center < 80.0f) {
                 valid_position = false;
@@ -124,10 +131,9 @@ void init_bumpers(struct Bumper *bumpers) {
                 continue;
             }
             
-            // Check distance from other bumpers
             for (int j = 0; j < i; j++) {
-                float dist = sqrtf((bumpers[i].x - bumpers[j].x) * (bumpers[i].x - bumpers[j].x) + 
-                                  (bumpers[i].y - bumpers[j].y) * (bumpers[i].y - bumpers[j].y));
+                float dist = sqrtf(((*bumpers)[i].x - (*bumpers)[j].x) * ((*bumpers)[i].x - (*bumpers)[j].x) + 
+                                  ((*bumpers)[i].y - (*bumpers)[j].y) * ((*bumpers)[i].y - (*bumpers)[j].y));
                 if (dist < 60.0f) { 
                     valid_position = false;
                     break;
@@ -138,9 +144,9 @@ void init_bumpers(struct Bumper *bumpers) {
         }
         
         if (!valid_position) {
-            bumpers[i].x = 100 + (i * 150);
-            bumpers[i].y = 100 + ((i % 2) * 200);
-            bumpers[i].radius = 15.0f;
+            (*bumpers)[i].x = 100 + (i * 150);
+            (*bumpers)[i].y = 100 + ((i % 2) * 200);
+            (*bumpers)[i].radius = 15.0f;
         }
     }
 }
