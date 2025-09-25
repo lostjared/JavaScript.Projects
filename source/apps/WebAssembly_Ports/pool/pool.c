@@ -14,7 +14,7 @@ int shot_count = 0;
 bool game_won = false;
 bool showing_win_screen = false;
 int MAX_BUMPERS = 4;
-
+SDL_Texture *ball_tex;
 
 void init_stick(struct Stick *stick) {
     memset(stick, 0, sizeof(struct Stick));
@@ -363,17 +363,16 @@ void draw_stick(struct Stick *stick) {
     }
 }
 
-void draw_ball(struct Ball *ball) {
-    
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    
-    for (int y = -ball->radius; y <= ball->radius; y++) {
-        for (int x = -ball->radius; x <= ball->radius; x++) {
-            if (x*x + y*y <= ball->radius * ball->radius) {
-                SDL_RenderDrawPoint(renderer, (int)(ball->x + x), (int)(ball->y + y));
-            }
-        }
-    }
+void draw_ball(struct Ball *ball) {    
+    int ball_size = (int)(ball->radius * 2);
+    SDL_Rect dest_rect = {
+        (int)(ball->x - ball->radius),  
+        (int)(ball->y - ball->radius),  
+        ball_size,                      
+        ball_size                       
+    };
+
+    SDL_RenderCopy(renderer, ball_tex, NULL, &dest_rect);
 }
 
 void draw_target(struct Target *target) {
@@ -395,25 +394,14 @@ void draw_target(struct Target *target) {
 
 void draw_bumpers(struct Bumper *bumpers) {
     for (int i = 0; i < MAX_BUMPERS; i++) {
-        SDL_SetRenderDrawColor(renderer, 0, 100, 255, 255);
-        
-        for (int y = -bumpers[i].radius; y <= bumpers[i].radius; y++) {
-            for (int x = -bumpers[i].radius; x <= bumpers[i].radius; x++) {
-                if (x*x + y*y <= bumpers[i].radius * bumpers[i].radius) {
-                    SDL_RenderDrawPoint(renderer, (int)(bumpers[i].x + x), (int)(bumpers[i].y + y));
-                }
-            }
-        }
-        
-        SDL_SetRenderDrawColor(renderer, 0, 50, 200, 255);
-        for (int angle = 0; angle < 360; angle += 5) {
-            float rad = angle * M_PI / 180.0f;
-            int edge_x = (int)(bumpers[i].x + cosf(rad) * bumpers[i].radius);
-            int edge_y = (int)(bumpers[i].y + sinf(rad) * bumpers[i].radius);
-            SDL_RenderDrawPoint(renderer, edge_x, edge_y);
-            SDL_RenderDrawPoint(renderer, edge_x + 1, edge_y);
-            SDL_RenderDrawPoint(renderer, edge_x, edge_y + 1);
-        }
+        int bumper_size = (int)(bumpers[i].radius * 2);
+        SDL_Rect dest_rect = {
+            (int)(bumpers[i].x - bumpers[i].radius),  
+            (int)(bumpers[i].y - bumpers[i].radius),  
+            bumper_size,                              
+            bumper_size                               
+        };
+        SDL_RenderCopy(renderer, bumber, NULL, &dest_rect);
     }
 }
 

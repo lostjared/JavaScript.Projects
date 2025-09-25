@@ -2,6 +2,8 @@
 #define POOL_H
 
 #include <stdbool.h>
+#include"sdl.h"
+
 
 #define WINDOW_W 640
 #define WINDOW_H 360
@@ -39,6 +41,7 @@ struct Bumper {
 extern int shot_count;
 extern bool game_won;
 extern bool showing_win_screen;
+extern SDL_Texture *ball_tex, *bumber;
 
 void init_stick(struct Stick *stick);
 void init_ball(struct Ball *ball);

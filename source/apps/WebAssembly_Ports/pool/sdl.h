@@ -9,6 +9,7 @@ int initSDL(const char *app, int w, int h, int sx, int sy);
 void printtext(const char *src, int x, int y);
 void settextcolor(unsigned char r, unsigned char g, unsigned char b, unsigned char a);
 void releaseSDL(void);
+const char *getPath(const char *src);
 
 extern SDL_Window *window;
 extern SDL_Renderer *renderer;

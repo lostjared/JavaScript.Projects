@@ -16,12 +16,19 @@ struct Stick stick;
 struct Ball ball;
 struct Target target;
 
+SDL_Texture *table;
+
 SDL_Event e;
 int active = 1;
 struct Bumper *bumpers_arr = NULL;
+SDL_Texture *bumber;
+
+
 
 void update(void);
 void render(void);
+void load(void);
+void cleanup(void);
 
 void reset_game(struct Stick *stick, struct Ball *ball, struct Target *target) {
     shot_count = 0;
@@ -35,11 +42,65 @@ void reset_game(struct Stick *stick, struct Ball *ball, struct Target *target) {
     ensure_bumpers_avoid_target(bumpers_arr, target); 
 }
 
+void load(void) {
+
+    SDL_Surface *surface = SDL_LoadBMP(getPath("table.bmp"));
+    if(!surface) {
+        fprintf(stderr, "Error could not load surface: %s\n", SDL_GetError());
+        fprintf(stderr, "Aborting..\n");
+        exit(1);
+    }
+    table = SDL_CreateTextureFromSurface(renderer, surface);
+    if(!table) {
+        fprintf(stderr, "Error converting surface: %s\n", SDL_GetError());
+        fprintf(stderr, "Aborting... ");
+        exit(1);
+    }
+    SDL_FreeSurface(surface);
+    SDL_Surface *bsurf = SDL_LoadBMP(getPath("ball.bmp"));
+    if(!bsurf) {
+        fprintf(stderr, "Error could not load surface: %s %s\n", "ball.bmp", SDL_GetError());
+        fprintf(stderr, "Aborting..\n");
+        exit(1);
+    }
+    SDL_SetColorKey(bsurf, SDL_TRUE, SDL_MapRGB(bsurf->format, 0, 0, 0));
+    ball_tex = SDL_CreateTextureFromSurface(renderer, bsurf);
+    SDL_FreeSurface(bsurf);
+    if(!ball_tex) {
+        fprintf(stderr, "Error converting surface: %s\n", SDL_GetError());
+        fprintf(stderr, "Aborting..\n");
+        exit(1);
+    }
+    SDL_Surface *csurf = SDL_LoadBMP(getPath("bumber.bmp"));
+    if(!csurf) {
+        fprintf(stderr, "Error could not load surface: %s %s\n", "bumber.bmp", SDL_GetError());
+        fprintf(stderr, "Aborting..\n");
+        exit(1);
+    }
+    SDL_SetColorKey(csurf, SDL_TRUE, SDL_MapRGB(csurf->format, 0, 0, 0));
+    bumber = SDL_CreateTextureFromSurface(renderer, csurf);
+    SDL_FreeSurface(csurf);
+    if(!bumber) {
+        fprintf(stderr, "Error converting surface: %s\n", SDL_GetError());
+        fprintf(stderr, "Aborting..\n");
+        exit(1);
+    }
+}
+
+void cleanup(void) {
+    if(table != NULL)
+        SDL_DestroyTexture(table);
+    if(ball_tex != NULL) {
+        SDL_DestroyTexture(ball_tex);
+    }
+}
+
 int main(int argc, char **argv) {
     srand(time(NULL));
     if (!initSDL("Pool Game", WINDOW_W, WINDOW_H, WINDOW_SX, WINDOW_SY)) {
         return 1;
     }
+    load();
     init_stick(&stick);
     init_ball(&ball);
     init_bumpers(&bumpers_arr); 
@@ -54,6 +115,7 @@ int main(int argc, char **argv) {
 #endif
     if(bumpers_arr != NULL)
         free(bumpers_arr);
+    cleanup();
     releaseSDL();
     return 0;
 }
@@ -125,7 +187,7 @@ void render(void) {
     } else {
         SDL_SetRenderDrawColor(renderer, 0, 100, 0, 255); 
         SDL_RenderClear(renderer);
-
+        SDL_RenderCopy(renderer, table, NULL, NULL);
         draw_bumpers(bumpers_arr);
         draw_target(&target);
         draw_ball(&ball);
