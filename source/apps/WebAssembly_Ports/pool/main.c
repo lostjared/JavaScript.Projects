@@ -22,7 +22,7 @@ SDL_Event e;
 int active = 1;
 struct Bumper *bumpers_arr = NULL;
 SDL_Texture *bumber;
-
+SDL_Texture *target_bmp = NULL;
 
 
 void update(void);
@@ -85,14 +85,28 @@ void load(void) {
         fprintf(stderr, "Aborting..\n");
         exit(1);
     }
+    SDL_Surface *tsurf = SDL_LoadBMP(getPath("target.bmp"));
+    if(!tsurf) {
+        fprintf(stderr, "Error could not load surface: %s %s\n", "target.bmp", SDL_GetError());
+        fprintf(stderr, "Aborting..\n");
+        exit(1);
+    }
+    target_bmp = SDL_CreateTextureFromSurface(renderer, tsurf);
+    SDL_FreeSurface(tsurf);
+    if(!target_bmp) {
+        fprintf(stderr, "Error converting surface: %s\n", SDL_GetError());
+        fprintf(stderr, "Aborting..\n");
+        exit(1);
+    }
 }
 
 void cleanup(void) {
     if(table != NULL)
         SDL_DestroyTexture(table);
-    if(ball_tex != NULL) {
+    if(ball_tex != NULL) 
         SDL_DestroyTexture(ball_tex);
-    }
+    if(target_bmp != NULL)
+        SDL_DestroyTexture(target_bmp);
 }
 
 int main(int argc, char **argv) {

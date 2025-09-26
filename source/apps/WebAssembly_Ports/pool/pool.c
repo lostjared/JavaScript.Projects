@@ -376,20 +376,9 @@ void draw_ball(struct Ball *ball) {
 }
 
 void draw_target(struct Target *target) {
-    
+
     SDL_Rect rect = {(int)target->x, (int)target->y, (int)target->width, (int)target->height};
-    
-    if (target->ball_in_target) {
-        SDL_SetRenderDrawColor(renderer, 0, 255, 0, 100); 
-        SDL_RenderFillRect(renderer, &rect);
-        SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-    } else {
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 50); 
-        SDL_RenderFillRect(renderer, &rect);
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-    }
-    
-    SDL_RenderDrawRect(renderer, &rect);
+    SDL_RenderCopy(renderer, target_bmp, NULL, &rect);
 }
 
 void draw_bumpers(struct Bumper *bumpers) {

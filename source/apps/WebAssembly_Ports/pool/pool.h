@@ -41,7 +41,7 @@ struct Bumper {
 extern int shot_count;
 extern bool game_won;
 extern bool showing_win_screen;
-extern SDL_Texture *ball_tex, *bumber;
+extern SDL_Texture *ball_tex, *bumber, *target_bmp;
 
 void init_stick(struct Stick *stick);
 void init_ball(struct Ball *ball);
