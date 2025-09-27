@@ -452,7 +452,7 @@ void draw_ui(struct Stick *stick, struct Target *target) {
         printtext("TARGET HIT!", WINDOW_W/2 - 50, 50);
     } else {
         settextcolor(255, 255, 255, 255);
-        printtext("Get ball in red target!", 10, WINDOW_H - 20);
+        printtext("Get ball in target!", 10, WINDOW_H - 20);
     }
     settextcolor(255, 255, 255, 255);
     char sbuf[50];
