@@ -21,7 +21,7 @@ SDL_Texture *table;
 SDL_Event e;
 int active = 1;
 struct Bumper *bumpers_arr = NULL;
-SDL_Texture *bumber;
+SDL_Texture *bumber = NULL;
 SDL_Texture *target_bmp = NULL;
 
 
@@ -73,7 +73,7 @@ void load(void) {
     }
     SDL_Surface *csurf = SDL_LoadBMP(getPath("bumber.bmp"));
     if(!csurf) {
-        fprintf(stderr, "Error could not load surface: %s %s\n", "bumber.bmp", SDL_GetError());
+        fprintf(stderr, "Error could not load surface: %s %s\n", "bumer.bmp", SDL_GetError());
         fprintf(stderr, "Aborting..\n");
         exit(1);
     }
@@ -192,6 +192,8 @@ void update(void) {
 void render(void) {
     static Uint32 last_time = 0;
     Uint32 current_time = SDL_GetTicks();
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderClear(renderer);
     SDL_SetRenderTarget(renderer, texture);
     if (showing_win_screen) {
         draw_win_screen();
@@ -205,10 +207,28 @@ void render(void) {
         draw_stick(&stick);
         draw_ui(&stick, &target);
     }
-    SDL_SetRenderTarget(renderer, NULL);
-    SDL_RenderCopy(renderer, texture, NULL, NULL);
-    SDL_RenderPresent(renderer);
     
+    SDL_SetRenderTarget(renderer, NULL);
+    int window_w, window_h;
+    SDL_GetRendererOutputSize(renderer, &window_w, &window_h);
+    int tex_w, tex_h;
+    SDL_QueryTexture(texture, NULL, NULL, &tex_w, &tex_h);
+    float window_aspect = (float)window_w / (float)window_h;
+    float texture_aspect = (float)tex_w / (float)tex_h;
+    SDL_Rect dst;
+    if (texture_aspect > window_aspect) {
+        dst.w = window_w;
+        dst.h = (int)(window_w / texture_aspect);
+        dst.x = 0;
+        dst.y = (window_h - dst.h) / 2;
+    } else {
+        dst.h = window_h;
+        dst.w = (int)(window_h * texture_aspect);
+        dst.y = 0;
+        dst.x = (window_w - dst.w) / 2;
+    }
+    SDL_RenderCopy(renderer, texture, NULL, &dst);
+    SDL_RenderPresent(renderer);
     const Uint32 target_frame_time = 1000 / 60; 
     Uint32 frame_time = current_time - last_time;
     if (frame_time < target_frame_time) {
