@@ -90,10 +90,12 @@ void printtext(const char *src, int x, int y) {
     if (!font || !renderer) return;
     SDL_Surface *surface = TTF_RenderText_Blended(font, src, textColor);
     if (!surface) return;
+    int text_w = surface->w;
+    int text_h = surface->h;
     SDL_Texture *textTex = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
+    SDL_FreeSurface(surface); 
     if (!textTex) return;
-    SDL_Rect dst = {x, y, surface->w, surface->h};
+    SDL_Rect dst = {x, y, text_w, text_h};
     SDL_RenderCopy(renderer, textTex, NULL, &dst);
     SDL_DestroyTexture(textTex);
 }
