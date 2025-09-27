@@ -142,12 +142,11 @@ void update(void) {
             active = 0;
             return;
         }
-        
         if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE) {
             active = 0;
             return;
         }
-        
+                 
         if (showing_win_screen && e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_r) {
             reset_game(&stick, &ball, &target);
             return;
@@ -193,9 +192,7 @@ void update(void) {
 void render(void) {
     static Uint32 last_time = 0;
     Uint32 current_time = SDL_GetTicks();
-
     SDL_SetRenderTarget(renderer, texture);
-    
     if (showing_win_screen) {
         draw_win_screen();
     } else {
@@ -208,7 +205,6 @@ void render(void) {
         draw_stick(&stick);
         draw_ui(&stick, &target);
     }
-    
     SDL_SetRenderTarget(renderer, NULL);
     SDL_RenderCopy(renderer, texture, NULL, NULL);
     SDL_RenderPresent(renderer);
