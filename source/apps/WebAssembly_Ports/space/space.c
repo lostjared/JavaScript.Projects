@@ -351,8 +351,25 @@ void render(void) {
         draw_score(); 
     }
     SDL_SetRenderTarget(renderer, NULL);
-    SDL_Rect destRect = {0, 0, WINDOW_SX, WINDOW_SY};
-    SDL_RenderCopy(renderer, texture, NULL, &destRect);
+    int window_w, window_h;
+    SDL_GetRendererOutputSize(renderer, &window_w, &window_h);
+    int tex_w, tex_h;
+    SDL_QueryTexture(texture, NULL, NULL, &tex_w, &tex_h);
+    float window_aspect = (float)window_w / (float)window_h;
+    float texture_aspect = (float)tex_w / (float)tex_h;
+    SDL_Rect dst;
+    if (texture_aspect > window_aspect) {
+        dst.w = window_w;
+        dst.h = (int)(window_w / texture_aspect);
+        dst.x = 0;
+        dst.y = (window_h - dst.h) / 2;
+    } else {
+        dst.h = window_h;
+        dst.w = (int)(window_h * texture_aspect);
+        dst.y = 0;
+        dst.x = (window_w - dst.w) / 2;
+    }
+    SDL_RenderCopy(renderer, texture, NULL, &dst);
     SDL_RenderPresent(renderer);
     const Uint32 target_frame_time = 1000 / 60; 
     Uint32 frame_time = current_time - last_time;

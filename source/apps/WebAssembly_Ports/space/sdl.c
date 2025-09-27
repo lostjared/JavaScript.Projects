@@ -23,7 +23,7 @@ int initSDL(const char *app, int w, int h, int sx, int sy) {
         return 0;
     }
 
-    window = SDL_CreateWindow(app, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, sx, sy, SDL_WINDOW_SHOWN);
+    window = SDL_CreateWindow(app, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, sx, sy, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     if(!window) {
         fprintf(stderr, "Error creating window: %s\n", SDL_GetError());
         SDL_Quit();
