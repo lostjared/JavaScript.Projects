@@ -9,7 +9,6 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-
 int shot_count = 0;
 bool game_won = false;
 bool showing_win_screen = false;
@@ -42,10 +41,8 @@ void init_target(struct Bumper *bumpers, struct Target *target) {
     target->width = 75;
     target->height = 75;
     target->ball_in_target = false;
-    
     bool valid_position = false;
     int attempts = 0;
-    
     while (!valid_position && attempts < 50) {
         target->x = 20 + rand() % (WINDOW_W - (int)target->width - 40);
         target->y = 20 + rand() % (WINDOW_H - (int)target->height - 40);
@@ -54,7 +51,6 @@ void init_target(struct Bumper *bumpers, struct Target *target) {
         float center_y = WINDOW_H / 2;
         float target_center_x = target->x + target->width / 2;
         float target_center_y = target->y + target->height / 2;
-        
         float dist_from_center = sqrtf((target_center_x - center_x) * (target_center_x - center_x) + 
                                       (target_center_y - center_y) * (target_center_y - center_y));
         
@@ -63,21 +59,17 @@ void init_target(struct Bumper *bumpers, struct Target *target) {
             attempts++;
             continue;
         }
-        
         for (int i = 0; i < MAX_BUMPERS; i++) {
             float bumper_dist_x = fabs(target_center_x - bumpers[i].x);
-            float bumper_dist_y = fabs(target_center_y - bumpers[i].y);
-            
+            float bumper_dist_y = fabs(target_center_y - bumpers[i].y);   
             if (bumper_dist_x < (target->width/2 + bumpers[i].radius + 20) &&
                 bumper_dist_y < (target->height/2 + bumpers[i].radius + 20)) {
                 valid_position = false;
                 break;
             }
-        }
-        
+        }   
         attempts++;
-    }
-    
+    }  
     if (!valid_position) {
         int corner = rand() % 4;
         switch (corner) {
@@ -108,29 +100,23 @@ void init_bumpers(struct Bumper **bumpers) {
         MAX_BUMPERS ++;
     }
     *bumpers = (struct Bumper *)malloc(sizeof(struct Bumper) * MAX_BUMPERS);
-    
     for (int i = 0; i < MAX_BUMPERS; i++) {
         bool valid_position = false;
         int attempts = 0;
-        
         while (!valid_position && attempts < 50) {
             (*bumpers)[i].x = 60 + rand() % (WINDOW_W - 120);
             (*bumpers)[i].y = 60 + rand() % (WINDOW_H - 120);
             (*bumpers)[i].radius = 15.0f;
-            
             valid_position = true;
-            
             float center_x = WINDOW_W / 2;
             float center_y = WINDOW_H / 2;
             float dist_from_center = sqrtf(((*bumpers)[i].x - center_x) * ((*bumpers)[i].x - center_x) + 
                                           ((*bumpers)[i].y - center_y) * ((*bumpers)[i].y - center_y));
-            
             if (dist_from_center < 80.0f) {
                 valid_position = false;
                 attempts++;
                 continue;
             }
-            
             for (int j = 0; j < i; j++) {
                 float dist = sqrtf(((*bumpers)[i].x - (*bumpers)[j].x) * ((*bumpers)[i].x - (*bumpers)[j].x) + 
                                   ((*bumpers)[i].y - (*bumpers)[j].y) * ((*bumpers)[i].y - (*bumpers)[j].y));
@@ -138,11 +124,9 @@ void init_bumpers(struct Bumper **bumpers) {
                     valid_position = false;
                     break;
                 }
-            }
-            
+            }   
             attempts++;
         }
-        
         if (!valid_position) {
             (*bumpers)[i].x = 100 + (i * 150);
             (*bumpers)[i].y = 100 + ((i % 2) * 200);
@@ -153,10 +137,7 @@ void init_bumpers(struct Bumper **bumpers) {
 void ensure_bumpers_avoid_target(struct Bumper *bumpers, struct Target *target) {
     for (int i = 0; i < MAX_BUMPERS; i++) {
         bool needs_relocation = false;
-        
-
         float buffer = 30.0f; 
-        
         if (bumpers[i].x >= target->x - buffer && 
             bumpers[i].x <= target->x + target->width + buffer &&
             bumpers[i].y >= target->y - buffer && 
@@ -172,8 +153,6 @@ void ensure_bumpers_avoid_target(struct Bumper *bumpers, struct Target *target) 
             while (!found_new_position && attempts < 30) {
                 float new_x = 60 + rand() % (WINDOW_W - 120);
                 float new_y = 60 + rand() % (WINDOW_H - 120);
-                
-            
                 float center_x = WINDOW_W / 2;
                 float center_y = WINDOW_H / 2;
                 float dist_from_center = sqrtf((new_x - center_x) * (new_x - center_x) + 
@@ -183,8 +162,6 @@ void ensure_bumpers_avoid_target(struct Bumper *bumpers, struct Target *target) 
                     attempts++;
                     continue;
                 }
-                
-            
                 if (new_x >= target->x - buffer && 
                     new_x <= target->x + target->width + buffer &&
                     new_y >= target->y - buffer && 
@@ -192,8 +169,6 @@ void ensure_bumpers_avoid_target(struct Bumper *bumpers, struct Target *target) 
                     attempts++;
                     continue;
                 }
-                
-            
                 bool too_close_to_other = false;
                 for (int j = 0; j < MAX_BUMPERS; j++) {
                     if (i != j) {
@@ -204,8 +179,7 @@ void ensure_bumpers_avoid_target(struct Bumper *bumpers, struct Target *target) 
                             break;
                         }
                     }
-                }
-                
+                }   
                 if (!too_close_to_other) {
                     bumpers[i].x = new_x;
                     bumpers[i].y = new_y;
@@ -214,7 +188,6 @@ void ensure_bumpers_avoid_target(struct Bumper *bumpers, struct Target *target) 
                     attempts++;
                 }
             }
-            
             if (!found_new_position) {
                 float corners[4][2] = {
                     {100, 100},                          
@@ -222,8 +195,6 @@ void ensure_bumpers_avoid_target(struct Bumper *bumpers, struct Target *target) 
                     {100, WINDOW_H - 100},               
                     {WINDOW_W - 100, WINDOW_H - 100}     
                 };
-                
-                
                 float max_dist = 0;
                 int best_corner = 0;
                 for (int c = 0; c < 4; c++) {
@@ -236,7 +207,6 @@ void ensure_bumpers_avoid_target(struct Bumper *bumpers, struct Target *target) 
                         best_corner = c;
                     }
                 }
-                
                 bumpers[i].x = corners[best_corner][0] + (i * 20); 
                 bumpers[i].y = corners[best_corner][1] + ((i % 2) * 20);
             }
@@ -246,20 +216,17 @@ void ensure_bumpers_avoid_target(struct Bumper *bumpers, struct Target *target) 
 
 void update_stick(struct Stick *stick) {
     const Uint8 *keys = SDL_GetKeyboardState(NULL);
-    
     if (keys[SDL_SCANCODE_LEFT]) {
         stick->angle -= 0.05f;
     }
     if (keys[SDL_SCANCODE_RIGHT]) {
         stick->angle += 0.05f;
     }
-    
     if (keys[SDL_SCANCODE_SPACE]) {
         if (!stick->charging) {
             stick->charging = true;
             stick->charge = 0.0f;
         }
-        
         if (stick->charge < 100.0f) {
             stick->charge += 2.0f; 
         }
@@ -268,15 +235,9 @@ void update_stick(struct Stick *stick) {
 
 void update_ball(struct Ball *ball) {
     if (!ball->moving) return;
-    
-    
     ball->just_stopped = false;
-    
-    
     ball->x += ball->vx;
     ball->y += ball->vy;
-    
-    
     if (ball->x - ball->radius <= 0 || ball->x + ball->radius >= WINDOW_W) {
         ball->vx = -ball->vx * 0.8f;
         ball->x = (ball->x - ball->radius <= 0) ? ball->radius : WINDOW_W - ball->radius;
@@ -286,12 +247,8 @@ void update_ball(struct Ball *ball) {
         ball->vy = -ball->vy * 0.8f;
         ball->y = (ball->y - ball->radius <= 0) ? ball->radius : WINDOW_H - ball->radius;
     }
-    
-    
     ball->vx *= 0.995f;
     ball->vy *= 0.995f;
-    
-    
     if (fabs(ball->vx) < 0.1f && fabs(ball->vy) < 0.1f) {
         ball->vx = 0.0f;
         ball->vy = 0.0f;
@@ -309,16 +266,11 @@ void check_ball_target(struct Ball *ball, struct Target *target) {
 
 void hit_ball(struct Stick *stick, struct Ball *ball) {
     if (!stick->charging) return;
-    
     float power = stick->charge / 100.0f * 15.0f; 
-    
     ball->vx = cosf(stick->angle) * power;
     ball->vy = sinf(stick->angle) * power;
     ball->moving = true;
-    
-    
-    shot_count++;
-    
+    shot_count++;    
     stick->charging = false;
     stick->charge = 0.0f;
     stick->visible = true;
@@ -326,8 +278,7 @@ void hit_ball(struct Stick *stick, struct Ball *ball) {
 
 void draw_stick(struct Stick *stick) {
     if (!stick->visible) return;
-    
-    
+
     float stick_offset = stick->charging ? (stick->charge / 100.0f * 30.0f) : 0.0f;
     float start_x = stick->x - cosf(stick->angle) * (stick->length + stick_offset);
     float start_y = stick->y - sinf(stick->angle) * (stick->length + stick_offset);
@@ -442,7 +393,6 @@ void draw_ui(struct Stick *stick, struct Target *target) {
         SDL_RenderDrawRect(renderer, &power_bg);
     }
     
- 
     settextcolor(255, 255, 255, 255);
     printtext("Arrow Keys: Aim", 10, WINDOW_H - 60);
     printtext("Space: Hold to charge, Release to shoot", 10, WINDOW_H - 40);
@@ -480,20 +430,16 @@ void draw_win_screen(void) {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
     
-    
-    
     settextcolor(0, 255, 0, 255);
     printtext("CONGRATULATIONS!", WINDOW_W/2 - 80, WINDOW_H/2 - 60);
     
     settextcolor(255, 255, 255, 255);
     printtext("You got the ball in the target!", WINDOW_W/2 - 120, WINDOW_H/2 - 20);
     
-    
     char shot_text[50];
     snprintf(shot_text, 50, "Shots taken: %d", shot_count);
     settextcolor(255, 255, 0, 255);
     printtext(shot_text, WINDOW_W/2 - 60, WINDOW_H/2 + 20);
-    
     
     settextcolor(200, 200, 200, 255);
     printtext("Press R to play again", WINDOW_W/2 - 80, WINDOW_H/2 + 60);
