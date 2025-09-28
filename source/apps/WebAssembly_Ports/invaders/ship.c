@@ -54,3 +54,10 @@ void ship_clamp(struct Ship *s) {
     if(s->x > 640-s->w)
         s->x = 640-s->w;
 }
+
+int ship_inrect(struct Ship *s, int x, int y, int w, int h) {
+    if(s->x >= x && s->x+s->w <= x+1 && s->y >= y && s->y+s->h <= y+h) {
+        return 1;
+    }
+    return 0;
+}

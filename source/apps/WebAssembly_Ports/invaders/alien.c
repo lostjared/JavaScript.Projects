@@ -29,15 +29,11 @@ void alien_free(struct Alien *a) {
 void draw_alien(int x, int y, int type) {
     switch(type) {
         case 0: 
-            SDL_SetRenderDrawColor(renderer, 255, 0, 255, 255); 
-            
-            
+            SDL_SetRenderDrawColor(renderer, 255, 0, 255, 255);        
             SDL_RenderDrawLine(renderer, x+6, y+2, x+13, y+2);  
             SDL_RenderDrawLine(renderer, x+4, y+3, x+15, y+3);  
             SDL_RenderDrawLine(renderer, x+3, y+4, x+16, y+4);  
             SDL_RenderDrawLine(renderer, x+2, y+5, x+17, y+5);  
-            
-            
             SDL_RenderDrawPoint(renderer, x+6, y+6);
             SDL_RenderDrawPoint(renderer, x+13, y+6);
             
