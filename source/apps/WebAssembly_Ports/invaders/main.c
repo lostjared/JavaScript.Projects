@@ -142,11 +142,20 @@ void loop(void) {
     SDL_Delay(16);
 }
 
+Uint64 timeout = 0;
+
 void update_aliens(void) {
     int living_aliens = count_living_aliens();
     int base_speed = 45; 
     int total_aliens = 78; 
-    
+    if(timeout == 0)
+        timeout = SDL_GetTicks64();
+
+    Uint64 wait = SDL_GetTicks64();
+    if(wait-timeout > 600) {
+        projectiles = pnode_add(projectiles, rand()%630, 300, 1);
+        timeout = SDL_GetTicks64();
+    }
     
     alien_move_speed = base_speed - ((total_aliens - living_aliens) / 3); 
     if (alien_move_speed < 8) alien_move_speed = 8; 
@@ -175,6 +184,7 @@ void update_aliens(void) {
         } else {
             aliens = alien_update_all(aliens, alien_direction * 12, 0); 
         }
+
     }
 }
 

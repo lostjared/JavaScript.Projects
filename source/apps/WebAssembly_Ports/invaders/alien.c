@@ -1,5 +1,7 @@
 #include"alien.h"
+#include"projectile.h"
 #include"sdl.h"
+#include<SDL2/SDL.h>
 
 void alien_init(struct Alien *a) {
     if (a == NULL) {

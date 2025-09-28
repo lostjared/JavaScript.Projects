@@ -1,6 +1,5 @@
 #include "ship.h"
 
-
 void ship_init(struct Ship *s) {
     s->w = 25;
     s->h = 25;
@@ -19,8 +18,6 @@ void ship_draw(struct Ship *s) {
     SDL_RenderDrawLine(renderer, s->x + 18, s->y + 12, s->x + 22, s->y + 12); 
     SDL_RenderDrawLine(renderer, s->x + 1, s->y + 14, s->x + 5, s->y + 14);   
     SDL_RenderDrawLine(renderer, s->x + 19, s->y + 14, s->x + 23, s->y + 14); 
-    
-    
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); 
     SDL_RenderDrawPoint(renderer, s->x + 11, s->y + 6);   
     SDL_RenderDrawPoint(renderer, s->x + 13, s->y + 6);   
@@ -35,8 +32,6 @@ void ship_draw(struct Ship *s) {
     SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255); 
     SDL_RenderDrawLine(renderer, s->x + 6, s->y + 10, s->x + 6, s->y + 12);   
     SDL_RenderDrawLine(renderer, s->x + 18, s->y + 10, s->x + 18, s->y + 12); 
-    
-    
     SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); 
     SDL_RenderDrawPoint(renderer, s->x + 12, s->y + 3); 
 }

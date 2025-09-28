@@ -21,21 +21,24 @@ struct pNode* pnode_display(struct pNode *head) {
     if (head == NULL) {
         return NULL;
     }
-
-
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_RenderDrawPoint(renderer, head->x, head->y);
+    if(head->type == 0) {
+        head->y -= 10;        
+        if (head->y < 0) {
+            struct pNode *temp = head->next;
+            free(head);
+            return pnode_display(temp);
+        }
 
-    head->y-= 10;
-
-
-    if (head->y < 0) {
-        struct pNode *temp = head->next;
-        free(head);
-        return pnode_display(temp);
+    } else {
+        head->y ++;       
+        if (head->y > 360) {
+            struct pNode *temp = head->next;
+            free(head);
+            return pnode_display(temp);
+        }
     }
-
-
     head->next = pnode_display(head->next);
     return head;
 }
