@@ -55,8 +55,10 @@ void ship_clamp(struct Ship *s) {
         s->x = 640-s->w;
 }
 
-int ship_inrect(struct Ship *s, int x, int y, int w, int h) {
-    if(s->x >= x && s->x+s->w <= x+1 && s->y >= y && s->y+s->h <= y+h) {
+int ship_inrect(struct Ship *s, int x, int y) {
+    SDL_Point p = {x, y};
+    SDL_Rect rc = {s->x, s->y, s->w, s->h};
+    if(SDL_PointInRect(&p, &rc)) {
         return 1;
     }
     return 0;

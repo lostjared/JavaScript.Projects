@@ -16,5 +16,5 @@ void ship_draw(struct Ship *s);
 void ship_left(struct Ship *s);
 void ship_right(struct Ship *s);
 void ship_clamp(struct Ship *s);
-int ship_inrect(struct Ship *s, int x, int y, int w, int h);
+int ship_inrect(struct Ship *s, int x, int y);
 #endif

@@ -269,18 +269,16 @@ void check_ship_collision(void) {
     struct pNode *p_node = projectiles;
     while(p_node != NULL) {
         if(p_node->type == 1) {
-            if(ship_inrect(&ship, p_node->x, p_node->y, 2, 2)) {
+            if(ship_inrect(&ship, p_node->x, p_node->y)) {
                 explosion_active = 1;
                 explosion_x = ship.x + ship.w / 2;
                 explosion_y = ship.y + ship.h / 2;
                 explosion_timer = 0;
-                current->alive = 0;
                 lives--;
                 reset_alien_positions();
                 if(lives <= 0) {
                     game_over = 1;
                 }
-                
                 break;
             }
         }
@@ -397,7 +395,7 @@ int count_projectiles(void) {
     int count = 0;
     struct pNode *current = projectiles;
     while (current != NULL) {
-        count++;
+        if(current->type == 0) count++;
         current = current->next;
     }
     return count;

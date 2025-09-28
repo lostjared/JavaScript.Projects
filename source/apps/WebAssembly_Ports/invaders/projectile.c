@@ -28,7 +28,7 @@ struct pNode* pnode_display(struct pNode *head) {
     }
     SDL_RenderDrawPoint(renderer, head->x, head->y);
     if(head->type == 0) {
-        head->y --;        
+        head->y -= 10;        
         if (head->y < 0) {
             struct pNode *temp = head->next;
             free(head);
