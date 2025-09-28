@@ -275,11 +275,16 @@ void check_ship_collision(void) {
                 explosion_y = ship.y + ship.h / 2;
                 explosion_timer = 0;
                 lives--;
+                ship.x = 640/2 - ship.w/2;
+                if (projectiles != NULL) {
+                    pnode_free(projectiles);
+                    projectiles = NULL;
+                }
                 reset_alien_positions();
                 if(lives <= 0) {
                     game_over = 1;
                 }
-                break;
+                break;;
             }
         }
         p_node = p_node->next;
