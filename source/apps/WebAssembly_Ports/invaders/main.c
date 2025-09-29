@@ -331,7 +331,7 @@ void draw_explosion(int x, int y, int frame) {
     }
     
     int intensity = 255 - (explosion_timer * 255 / explosion_duration);
-    SDL_SetRenderDrawColor(renderer, 255, intensity, intensity / 2, 255);
+    SDL_SetRenderDrawColor(renderer, rand()%255, intensity, intensity / 2, 255);
     
     int num_lines = 12;
     int radius = explosion_timer * 2; 
