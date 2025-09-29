@@ -126,6 +126,9 @@ void loop(void) {
         if (explosion_timer >= explosion_duration) {
             explosion_active = 0;
             explosion_timer = 0;
+            if(lives <= 0) {
+                game_over = 1;
+            }
         }
     }
     
@@ -254,12 +257,7 @@ void check_ship_collision(void) {
                 
                 current->alive = 0;
                 lives--;
-                
                 reset_alien_positions();
-                
-                if(lives <= 0) {
-                    game_over = 1;
-                }
                 
                 break;
             }
@@ -281,9 +279,6 @@ void check_ship_collision(void) {
                     projectiles = NULL;
                 }
                 reset_alien_positions();
-                if(lives <= 0) {
-                    game_over = 1;
-                }
                 break;;
             }
         }
@@ -317,6 +312,8 @@ void reset_alien_positions(void) {
     
     alien_direction = 1;
     alien_move_timer = 0;
+    pnode_free(projectiles);
+    projectiles = NULL;
 }
 
 void draw_explosion(int x, int y, int frame) {
@@ -327,6 +324,9 @@ void draw_explosion(int x, int y, int frame) {
     if (explosion_timer >= explosion_duration) {
         explosion_active = 0;
         explosion_timer = 0;
+        if(lives <= 0) {
+            game_over = 1;
+        }
         return;
     }
     
@@ -441,22 +441,16 @@ void check_alien_invasion(void) {
     struct Alien *current = aliens;
     while (current != NULL) {
         if (current->alive && current->y >= ship.y - 30) { 
-    
             explosion_active = 1;
             explosion_x = ship.x + ship.w / 2;
             explosion_y = ship.y + ship.h / 2;
             explosion_timer = 0;
-            
             lives--;
             
-    
             reset_alien_positions();
-            
-    
             if(lives <= 0) {
                 game_over = 1;
             }
-            
             break; 
         }
         current = current->next;
