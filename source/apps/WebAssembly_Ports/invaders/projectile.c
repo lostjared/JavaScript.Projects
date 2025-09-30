@@ -24,7 +24,7 @@ struct pNode* pnode_display(struct pNode *head) {
     if(head->type == 0) {
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     } else {
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        SDL_SetRenderDrawColor(renderer, rand()%255, rand()%255, rand()%255, 255);
     }
     SDL_RenderDrawPoint(renderer, head->x, head->y);
     if(head->type == 0) {
