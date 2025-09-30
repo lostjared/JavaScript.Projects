@@ -38,11 +38,7 @@ void draw_alien(int x, int y, int type) {
             SDL_RenderDrawLine(renderer, x+2, y+5, x+17, y+5);  
             SDL_RenderDrawPoint(renderer, x+6, y+6);
             SDL_RenderDrawPoint(renderer, x+13, y+6);
-            
-            
             SDL_RenderDrawLine(renderer, x+8, y+7, x+11, y+7);
-            
-            
             SDL_RenderDrawLine(renderer, x+2, y+8, x+4, y+10);   
             SDL_RenderDrawLine(renderer, x+6, y+8, x+7, y+11);   
             SDL_RenderDrawLine(renderer, x+12, y+8, x+13, y+11); 
@@ -51,22 +47,14 @@ void draw_alien(int x, int y, int type) {
             
         case 1: 
             SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255); 
-            
-            
             SDL_RenderDrawLine(renderer, x+7, y+2, x+12, y+2);  
             SDL_RenderDrawLine(renderer, x+5, y+3, x+14, y+3);  
             SDL_RenderDrawLine(renderer, x+3, y+4, x+16, y+4);  
             SDL_RenderDrawLine(renderer, x+4, y+5, x+15, y+5);  
-            
-            
             SDL_RenderDrawPoint(renderer, x+7, y+6);
             SDL_RenderDrawPoint(renderer, x+12, y+6);
-            
-            
             SDL_RenderDrawLine(renderer, x+1, y+3, x+3, y+5);   
             SDL_RenderDrawLine(renderer, x+16, y+5, x+18, y+3); 
-            
-            
             SDL_RenderDrawPoint(renderer, x+5, y+7);
             SDL_RenderDrawPoint(renderer, x+7, y+8);
             SDL_RenderDrawPoint(renderer, x+9, y+9);
@@ -77,22 +65,15 @@ void draw_alien(int x, int y, int type) {
             
         case 2:
             SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); 
-            
-            
             SDL_RenderDrawLine(renderer, x+8, y+3, x+11, y+3);  
             SDL_RenderDrawLine(renderer, x+6, y+4, x+13, y+4);  
             SDL_RenderDrawLine(renderer, x+7, y+5, x+12, y+5);  
-            
-            
             SDL_RenderDrawPoint(renderer, x+8, y+6);
             SDL_RenderDrawPoint(renderer, x+11, y+6);
-            
-            
             SDL_RenderDrawLine(renderer, x+3, y+2, x+6, y+4);   
             SDL_RenderDrawLine(renderer, x+2, y+4, x+6, y+5);   
             SDL_RenderDrawLine(renderer, x+3, y+6, x+6, y+6);   
             SDL_RenderDrawLine(renderer, x+4, y+8, x+7, y+7);   
-            
             SDL_RenderDrawLine(renderer, x+13, y+4, x+16, y+2); 
             SDL_RenderDrawLine(renderer, x+13, y+5, x+17, y+4); 
             SDL_RenderDrawLine(renderer, x+13, y+6, x+16, y+6); 
@@ -101,29 +82,20 @@ void draw_alien(int x, int y, int type) {
             
         case 3: 
             SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); 
-            
-            
             SDL_RenderDrawLine(renderer, x+7, y+2, x+12, y+2);
             SDL_RenderDrawLine(renderer, x+6, y+3, x+13, y+3);
             SDL_RenderDrawLine(renderer, x+5, y+4, x+14, y+4);
-            
-            
             SDL_RenderDrawLine(renderer, x+3, y+5, x+16, y+5);
             SDL_RenderDrawLine(renderer, x+4, y+6, x+15, y+6);
-            
-            
             SDL_RenderDrawPoint(renderer, x+5, y+7);
             SDL_RenderDrawPoint(renderer, x+8, y+7);
             SDL_RenderDrawPoint(renderer, x+11, y+7);
             SDL_RenderDrawPoint(renderer, x+14, y+7);
-            
-            
             SDL_RenderDrawPoint(renderer, x+8, y+3);
             SDL_RenderDrawPoint(renderer, x+11, y+3);
-            break;
-            
+            break; 
         default: 
-            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); 
+            SDL_SetRenderDrawColor(renderer, rand()%255, rand() %255, rand()%255, 255); 
             SDL_RenderDrawLine(renderer, x+5, y+3, x+14, y+3);
             SDL_RenderDrawLine(renderer, x+4, y+4, x+15, y+4);
             SDL_RenderDrawLine(renderer, x+4, y+5, x+15, y+5);

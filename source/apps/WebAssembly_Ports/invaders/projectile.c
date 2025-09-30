@@ -6,6 +6,7 @@ struct pNode *pnode_new(int x, int y, int type) {
     node->y = y;
     node->type = type;
     node->next = NULL;
+    node->alive = 1;
     return node;
 }
 
@@ -13,6 +14,7 @@ struct pNode *pnode_new(int x, int y, int type) {
 struct pNode* pnode_add(struct pNode *head, int x, int y, int type) {
     struct pNode *new_node = pnode_new(x, y, type);
     new_node->next = head;
+
     return new_node;
 }
 
@@ -57,4 +59,14 @@ void pnode_free(struct pNode *node) {
     }
     
     free(node);
+}
+
+int pnode_detect(struct pNode *head, int x, int y) {
+    SDL_Point p = { x, y };
+    SDL_Rect rc = { head->x, head->y, 2, 2 };
+    if(SDL_PointInRect(&p,  &rc)) {
+        head->alive = 0;
+        return 1;
+    }
+    return 0;
 }

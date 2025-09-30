@@ -7,13 +7,12 @@
 struct pNode {
     int x,y,type;
     struct pNode *next;
+    int alive;
 };
-
 
 struct pNode *pnode_new(int x, int y, int type);
 struct pNode* pnode_add(struct pNode *head, int x, int y, int type);
 struct pNode* pnode_display(struct pNode *head);
 void pnode_free(struct pNode *node);
-
-
+int pnode_detect(struct pNode *head, int x, int y);
 #endif

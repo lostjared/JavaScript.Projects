@@ -192,10 +192,26 @@ void update_aliens(void) {
     }
 }
 
+int check_proj_col(int x, int y) {
+    struct pNode *node = projectiles;
+    while(node != NULL) {
+        if(node->type == 0) {
+            SDL_Point p = {x, y};
+            SDL_Rect rc = {node->x, node->y, 2, 2};
+            if(SDL_PointInRect(&p,  &rc)) {
+                return 1;
+            }
+        }
+        node = node->next;
+    }
+    return 0;
+}
+
+
 void check_collisions(void) {
     struct pNode *current_projectile = projectiles;
     struct pNode *prev_projectile = NULL;
-    
+        
     while (current_projectile != NULL) {
         int hit = 0;
         struct Alien *current_alien = aliens;
@@ -225,6 +241,38 @@ void check_collisions(void) {
             current_alien = current_alien->next;
         }
         
+        if (current_projectile->type == 1) {  
+            struct pNode *player_proj = projectiles;
+            struct pNode *prev_player_proj = NULL;
+            
+            while (player_proj != NULL) {
+                if (player_proj != current_projectile && player_proj->type == 0) {  
+                    
+                    int dx = player_proj->x - current_projectile->x;
+                    int dy = player_proj->y - current_projectile->y;
+                    int distance_squared = dx*dx + dy*dy;
+                    
+                    if (distance_squared < 25) {  
+                        hit = 1;  
+                        if (prev_player_proj == NULL) {
+                            projectiles = player_proj->next;
+                            free(player_proj);
+                            player_proj = projectiles;
+                        } else {
+                            prev_player_proj->next = player_proj->next;
+                            free(player_proj);
+                            player_proj = prev_player_proj->next;
+                        }
+                        break;
+                    }
+                }
+                
+                if (player_proj != NULL) {
+                    prev_player_proj = player_proj;
+                    player_proj = player_proj->next;
+                }
+            }
+        }
         if (hit) {
             if (prev_projectile == NULL) {
                 projectiles = current_projectile->next;
