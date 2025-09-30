@@ -3,6 +3,8 @@
 #include"sdl.h"
 #include<SDL2/SDL.h>
 
+int alien_lowest_y = 0;
+
 void alien_init(struct Alien *a) {
     if (a == NULL) {
         return;
@@ -169,6 +171,9 @@ struct Alien *alien_display_all(struct Alien *head) {
     while (current != NULL) {
         if (current->alive) {
             alien_draw(current);
+            if(current->y > alien_lowest_y) {
+                alien_lowest_y = current->y;
+            }
         }
         current = current->next;
     }
@@ -181,6 +186,9 @@ struct Alien *alien_update_all(struct Alien *head, int move_x, int move_y) {
         if (current->alive) {
             current->x += move_x;
             current->y += move_y;
+            if(current->y > alien_lowest_y) {
+                alien_lowest_y = current->y;
+            }
         }
         current = current->next;
     }

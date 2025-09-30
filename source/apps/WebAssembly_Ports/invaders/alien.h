@@ -10,6 +10,8 @@ struct Alien {
     struct Alien *next;
 };
 
+extern int alien_lowest_y;
+
 void alien_init(struct Alien *a);
 void alien_free(struct Alien *a);
 void alien_draw(struct Alien *a);

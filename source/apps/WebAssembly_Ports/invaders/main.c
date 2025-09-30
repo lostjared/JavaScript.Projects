@@ -139,6 +139,7 @@ void loop(void) {
         if (alien_move_speed > 10) {
             alien_move_speed -= 8; 
         }
+        alien_lowest_y = 0;
     }
     
     render();
@@ -156,7 +157,7 @@ void update_aliens(void) {
 
     Uint64 wait = SDL_GetTicks64();
     if(wait-timeout > 600) {
-        projectiles = pnode_add(projectiles, rand()%630, 300, 1);
+        projectiles = pnode_add(projectiles, rand()%630, alien_lowest_y + 30, 1);
         timeout = SDL_GetTicks64();
     }
     
@@ -365,20 +366,15 @@ void draw_explosion(int x, int y, int frame) {
 }
 
 void draw_game_over(void) {
-    
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 128);
     SDL_Rect overlay = {0, 0, 640, 360};
     SDL_RenderFillRect(renderer, &overlay);
-    
-    
     settextcolor(255, 0, 0, 255);
     printtext("GAME OVER", 280, 150);
-    
     settextcolor(255, 255, 255, 255); 
     char final_score[64];
     snprintf(final_score, 64, "Final Score: %d", score);
     printtext(final_score, 260, 180);
-    
     settextcolor(255, 255, 0, 255); 
     printtext("Press ENTER to continue", 200, 210);
 }
@@ -408,32 +404,27 @@ int count_projectiles(void) {
 
 void reset_game(void) {
     ship_init(&ship);
-    
     if (projectiles != NULL) {
         pnode_free(projectiles);
         projectiles = NULL;
     }
-    
     if (aliens != NULL) {
         alien_free(aliens);
     }
     aliens = alien_create_grid(13, 6); 
-    
     explosion_active = 0;
     explosion_timer = 0;
     alien_direction = 1;
     alien_move_timer = 0;
     alien_move_speed = 45; 
     projectile_cooldown = 0;
-    
-    
     for (int i = 0; i < max_alien_explosions; i++) {
         alien_explosions[i].active = 0;
     }
-    
     game_over = 0;
     score = 0;
     lives = 3;
+    alien_lowest_y = 0;
 }
 
 
