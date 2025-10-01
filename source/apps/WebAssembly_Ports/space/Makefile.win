@@ -7,7 +7,7 @@ SRCS = $(wildcard *.c)
 OBJS = $(SRCS:.c=.o)
 
 $(TARGET): $(OBJS)
-	windres data/icon.rc 
+	windres assets/icon.rc 
 	$(CC) $(CFLAGS) -o $@ $(OBJS) icon.o $(LDFLAGS)
 
 %.o: %.c
