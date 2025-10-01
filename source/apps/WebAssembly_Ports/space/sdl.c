@@ -36,6 +36,17 @@ int initSDL(const char *app, int w, int h, int sx, int sy) {
         SDL_Quit();
         return 0;
     }
+
+    SDL_Surface *ico = SDL_LoadBMP(getPath("icon.bmp"));
+    if(!ico) {
+        fprintf(stderr, "Could not open icon.bmp: %s\n", SDL_GetError());
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 0;
+    }
+
+    SDL_SetWindowIcon(window, ico);
+    SDL_FreeSurface(ico);
     
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, w, h);
     if (!texture) {

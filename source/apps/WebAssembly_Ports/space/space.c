@@ -15,7 +15,7 @@
 #define WINDOW_H 360
 #define WINDOW_SX 1280
 #define WINDOW_SY 720
-#define STAR_COUNT 200
+#define STAR_COUNT 300
 
 int initialized = 0;
 struct { float x, y, speed; } stars[STAR_COUNT];
