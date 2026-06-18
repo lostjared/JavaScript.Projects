@@ -3,7 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<title>MXVK 3D Tetris WebGL</title>
+<title>Tetris3D</title>
+<meta name="description" content="Tetris3D is a WebGL Tetris game with 3D rotation, touch controls, and a mobile-friendly layout.">
+<link rel="canonical" href="https://lostsidedead.biz/tetris3d">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Tetris3D">
+<meta property="og:title" content="Tetris3D">
+<meta property="og:description" content="Tetris3D is a WebGL Tetris game with 3D rotation, touch controls, and a mobile-friendly layout.">
+<meta property="og:url" content="https://lostsidedead.biz/tetris3d">
+<meta property="og:image" content="https://lostsidedead.biz/tetris3d/screenshot.png">
+<meta property="og:image:secure_url" content="https://lostsidedead.biz/tetris3d/screenshot.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Tetris3D">
+<meta name="twitter:description" content="Tetris3D is a WebGL Tetris game with 3D rotation, touch controls, and a mobile-friendly layout.">
+<meta name="twitter:image" content="https://lostsidedead.biz/tetris3d/screenshot.png">
 <style>
   :root {
     --bg: #05060a;
@@ -28,6 +44,8 @@
   body {
     position: fixed;
     inset: 0;
+    touch-action: none;
+    overscroll-behavior: none;
   }
 
   #stage {
@@ -37,12 +55,15 @@
     height: 100%;
     display: block;
     background: transparent;
+    touch-action: none;
   }
 
   #overlay {
     position: fixed;
     inset: 0;
     pointer-events: none;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    box-sizing: border-box;
   }
 
   .screen {
@@ -57,6 +78,7 @@
 
   .screen.active {
     display: flex;
+    pointer-events: auto;
   }
 
   #intro {
@@ -65,6 +87,8 @@
 
   .panel {
     width: min(92vw, 820px);
+    max-height: calc(100svh - 24px);
+    overflow: auto;
     border: 1px solid var(--panel-border);
     background: linear-gradient(180deg, rgba(4, 7, 14, 0.86), rgba(12, 16, 28, 0.78));
     backdrop-filter: blur(8px);
@@ -103,6 +127,9 @@
     background: rgba(255, 255, 255, 0.04);
     font-size: clamp(18px, 2.2vw, 24px);
     letter-spacing: 0.05em;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
   }
 
   .menu-item.selected {
@@ -213,6 +240,73 @@
     color: #fff7de;
   }
 
+  .name-entry-form {
+    display: none;
+    margin-top: 16px;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .name-input {
+    width: min(100%, 320px);
+    box-sizing: border-box;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 12px;
+    background: rgba(3, 6, 12, 0.75);
+    color: #fff7de;
+    font: inherit;
+    font-size: 20px;
+    letter-spacing: 0.12em;
+    padding: 12px 14px;
+    outline: none;
+    text-transform: uppercase;
+  }
+
+  .name-input:focus {
+    border-color: rgba(247, 201, 79, 0.6);
+    box-shadow: 0 0 0 2px rgba(247, 201, 79, 0.14);
+  }
+
+  .name-save {
+    border: 1px solid rgba(247, 201, 79, 0.45);
+    border-radius: 12px;
+    background: rgba(247, 201, 79, 0.15);
+    color: #fff7de;
+    font: inherit;
+    font-size: 16px;
+    letter-spacing: 0.12em;
+    padding: 12px 14px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .panel-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+
+  .panel-action {
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff7de;
+    font: inherit;
+    font-size: 15px;
+    letter-spacing: 0.12em;
+    padding: 11px 14px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .panel-action.primary {
+    border-color: rgba(247, 201, 79, 0.45);
+    background: rgba(247, 201, 79, 0.15);
+  }
+
   .entry-cursor {
     display: inline-block;
     min-width: 1ch;
@@ -243,6 +337,97 @@
   .error {
     color: #ffbc9b;
   }
+
+  @media (orientation: portrait), (max-width: 720px) {
+    .screen {
+      padding: 12px;
+      box-sizing: border-box;
+    }
+
+    .panel {
+      width: min(96vw, 560px);
+      max-height: calc(100svh - 24px);
+      padding: 18px 16px 16px;
+      border-radius: 14px;
+    }
+
+    .title {
+      font-size: clamp(28px, 8vw, 48px);
+    }
+
+    .subtitle {
+      font-size: 12px;
+      letter-spacing: 0.16em;
+    }
+
+    .menu-item {
+      font-size: 18px;
+      padding: 11px 14px;
+    }
+
+    .help,
+    .small {
+      font-size: 13px;
+    }
+
+    .hud-top {
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      gap: 8px;
+    }
+
+    .hud-box {
+      min-width: 0;
+      padding: 10px 12px;
+      border-radius: 12px;
+    }
+
+    .hud-label {
+      font-size: 10px;
+    }
+
+    .hud-value {
+      font-size: 18px;
+    }
+
+    .hud-footer {
+      left: 10px;
+      right: 10px;
+      bottom: max(10px, env(safe-area-inset-bottom));
+      font-size: 12px;
+    }
+
+    .hud-box.next-box canvas,
+    #next-piece {
+      width: 128px !important;
+      height: 128px !important;
+    }
+
+    .name-entry-form {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .name-input {
+      width: 100%;
+      font-size: 18px;
+    }
+
+    .name-save {
+      width: 100%;
+    }
+
+    .panel-actions {
+      flex-direction: column;
+    }
+
+    .panel-action {
+      width: 100%;
+    }
+  }
 </style>
 </head>
 <body>
@@ -254,7 +439,7 @@
 
   <div id="menu" class="screen" style="background-image:url('./data/start_screen.png')">
     <div class="panel">
-      <h1 class="title">MXVK 3D Tetris</h1>
+      <h1 class="title">Tetris3D</h1>
       <p class="subtitle">Single-player only</p>
       <div id="menu-list" class="menu"></div>
       <div class="help">
@@ -270,6 +455,9 @@
       <h1 class="title">High Scores</h1>
       <p class="subtitle">Stored locally in your browser</p>
       <div id="score-list" class="score-list"></div>
+      <div class="panel-actions">
+        <button id="highscores-return" class="panel-action primary" type="button">Return</button>
+      </div>
       <div class="help">Press Escape or Enter to return.</div>
     </div>
   </div>
@@ -278,6 +466,9 @@
     <div class="panel">
       <h1 class="title">Credits</h1>
       <p class="subtitle">Tetris 3D programmed by LostSideDead Software</p>
+      <div class="panel-actions">
+        <button id="credits-return" class="panel-action primary" type="button">Return</button>
+      </div>
       <div class="help">Press Escape or Enter to return.</div>
     </div>
   </div>
@@ -287,6 +478,13 @@
       <h1 class="title">Game Over</h1>
       <p id="gameover-text" class="subtitle">Press Enter to continue</p>
       <div id="name-entry" class="entry" style="display:none;"></div>
+      <div id="name-entry-form" class="name-entry-form">
+        <input id="name-input" class="name-input" type="text" maxlength="16" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false">
+        <button id="name-save" class="name-save" type="button">Save</button>
+      </div>
+      <div id="gameover-actions" class="panel-actions" style="display:none;">
+        <button id="gameover-return" class="panel-action primary" type="button">Continue</button>
+      </div>
       <div id="gameover-help" class="help">
         Enter confirms the score.
         <br>
@@ -375,6 +573,13 @@
   const gameoverText = document.getElementById('gameover-text');
   const gameoverHelp = document.getElementById('gameover-help');
   const nameEntry = document.getElementById('name-entry');
+  const nameEntryForm = document.getElementById('name-entry-form');
+  const nameInput = document.getElementById('name-input');
+  const nameSave = document.getElementById('name-save');
+  const highscoresReturn = document.getElementById('highscores-return');
+  const creditsReturn = document.getElementById('credits-return');
+  const gameoverReturn = document.getElementById('gameover-return');
+  const gameoverActions = document.getElementById('gameover-actions');
   const nextCanvas = document.getElementById('next-piece');
   const music = document.getElementById('music');
 
@@ -425,6 +630,13 @@
     texturesReady: false,
     images: {},
     textures: {},
+    pendingClear: null,
+    touch: {
+      pointers: new Map(),
+      drag: null,
+      rotate: null,
+      lastTap: null,
+    },
   };
 
   const boardOrigin = { x: 0, y: 0 };
@@ -916,10 +1128,23 @@
 
   function initializeMenu() {
     menuList.textContent = '';
-    for (const entry of menuEntries) {
+    for (const [index, entry] of menuEntries.entries()) {
       const item = document.createElement('div');
       item.className = 'menu-item';
+      item.setAttribute('role', 'button');
+      item.setAttribute('tabindex', '0');
       item.textContent = entry;
+      item.addEventListener('pointerup', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        state.menuIndex = index;
+        syncMenuSelection();
+        handleMenuConfirm();
+      });
+      item.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+      });
       menuList.appendChild(item);
     }
     syncMenuSelection();
@@ -968,7 +1193,12 @@
     if (screen !== 'gameover') {
       state.enteringName = false;
       nameEntry.style.display = 'none';
+      nameEntryForm.style.display = 'none';
+      gameoverActions.style.display = 'none';
       gameoverHelp.style.display = 'block';
+    }
+    if (screen !== 'game') {
+      clearTouchState();
     }
     syncVisibility();
   }
@@ -989,6 +1219,7 @@
   }
 
   function startGame() {
+    clearTouchState();
     state.board = createBoard();
     state.active = spawnPiece();
     state.nextPiece = randomPiece();
@@ -1006,6 +1237,7 @@
     state.gridPitch = 0;
     state.gridRoll = 0;
     state.cameraDistance = 2.45;
+    state.pendingClear = null;
     setScreen('game');
     updateHud();
     nextRenderer.draw(state.nextPiece);
@@ -1039,6 +1271,9 @@
   }
 
   function lockPiece() {
+    if (state.pendingClear) {
+      return;
+    }
     for (const block of state.active.blocks) {
       const bx = state.active.x + block.x;
       const by = state.active.y + block.y;
@@ -1046,12 +1281,48 @@
         state.board[by][bx] = state.active.color;
       }
     }
-    const cleared = clearLines();
-    if (cleared > 0) {
-      state.lines += cleared;
-      state.score += [0, 100, 300, 500, 800][cleared] * state.level;
-      state.level = Math.floor(state.lines / 8) + 1;
+    const clearedRows = findClearedRows();
+    state.active = createEmptyPiece();
+    state.fallAccumulator = 0;
+    if (clearedRows.length > 0) {
+      state.pendingClear = {
+        rows: clearedRows,
+        startedAt: performance.now(),
+        duration: 1.0,
+      };
+      return;
     }
+    spawnNextPiece();
+  }
+
+  function finalizePendingClear() {
+    if (!state.pendingClear) {
+      return;
+    }
+    const cleared = state.pendingClear.rows.length;
+    for (const row of [...state.pendingClear.rows].sort((a, b) => b - a)) {
+      state.board.splice(row, 1);
+      state.board.push(Array(boardWidth).fill(-1));
+    }
+    state.pendingClear = null;
+    state.lines += cleared;
+    state.score += [0, 100, 300, 500, 800][cleared] * state.level;
+    state.level = Math.floor(state.lines / 8) + 1;
+    spawnNextPiece();
+    updateHud();
+  }
+
+  function findClearedRows() {
+    const rows = [];
+    for (let y = 0; y < boardHeight; ++y) {
+      if (state.board[y].every((value) => value !== -1)) {
+        rows.push(y);
+      }
+    }
+    return rows;
+  }
+
+  function spawnNextPiece() {
     state.active = spawnPiece();
     state.nextPiece = randomPiece();
     nextRenderer.draw(state.nextPiece);
@@ -1059,19 +1330,6 @@
       enterGameOver();
     }
     updateHud();
-  }
-
-  function clearLines() {
-    let cleared = 0;
-    for (let y = 0; y < boardHeight; ++y) {
-      if (state.board[y].every((value) => value !== -1)) {
-        state.board.splice(y, 1);
-        state.board.push(Array(boardWidth).fill(-1));
-        ++cleared;
-        --y;
-      }
-    }
-    return cleared;
   }
 
   function dropInterval() {
@@ -1136,12 +1394,14 @@
     gameoverHelp.textContent = 'Enter confirms the score. Up / Down choose a character, Space appends it, Backspace deletes it.';
     if (qualifies) {
       gameoverText.textContent = 'New high score';
-      nameEntry.style.display = 'block';
       gameoverHelp.style.display = 'block';
       updateNameEntry();
+      syncNameEntryMode();
     } else {
       gameoverText.textContent = 'Press Enter to return to the menu';
       nameEntry.style.display = 'none';
+      nameEntryForm.style.display = 'none';
+      gameoverActions.style.display = 'flex';
     }
   }
 
@@ -1153,10 +1413,15 @@
   }
 
   function commitScoreEntry() {
+    if (shouldUseMobileNameInput()) {
+      state.playerName = sanitizeNameEntry(nameInput.value);
+    }
     addHighScore(state.playerName, state.score);
     state.highScoresAfterSave = true;
     state.enteringName = false;
     nameEntry.style.display = 'none';
+    nameEntryForm.style.display = 'none';
+    gameoverActions.style.display = 'flex';
     gameoverText.textContent = 'Score saved';
     gameoverHelp.textContent = 'Press Enter to continue.';
   }
@@ -1188,11 +1453,97 @@
   }
 
   function updateNameEntry() {
+    if (shouldUseMobileNameInput()) {
+      nameInput.value = state.playerName;
+      return;
+    }
     const cursor = state.enteringName ? `<span class="entry-cursor">${escapeHtml(currentNameCharacter())}</span>` : '';
     nameEntry.innerHTML = `${escapeHtml(state.playerName)}${cursor}`;
   }
 
+  function shouldUseMobileNameInput() {
+    return window.matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0;
+  }
+
+  function shouldAutoReturnOnTap() {
+    return shouldUseMobileNameInput();
+  }
+
+  function sanitizeNameEntry(value) {
+    return normalizeName(String(value || '').toUpperCase());
+  }
+
+  function syncNameEntryMode() {
+    if (!state.enteringName) {
+      nameEntry.style.display = 'none';
+      nameEntryForm.style.display = 'none';
+      return;
+    }
+    if (shouldUseMobileNameInput()) {
+      nameEntry.style.display = 'none';
+      nameEntryForm.style.display = 'flex';
+      nameInput.value = state.playerName;
+      window.setTimeout(() => {
+        nameInput.focus({ preventScroll: true });
+        nameInput.setSelectionRange(nameInput.value.length, nameInput.value.length);
+      }, 0);
+    } else {
+      nameEntryForm.style.display = 'none';
+      nameEntry.style.display = 'block';
+      updateNameEntry();
+    }
+  }
+
+  nameInput.addEventListener('input', () => {
+    if (!state.enteringName) {
+      return;
+    }
+    state.playerName = sanitizeNameEntry(nameInput.value);
+    nameInput.value = state.playerName;
+    updateNameEntry();
+  });
+
+  nameInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      commitScoreEntry();
+    }
+  });
+
+  nameSave.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    commitScoreEntry();
+  });
+
+  nameEntryForm.addEventListener('pointerdown', (event) => {
+    event.stopPropagation();
+  });
+
+  nameInput.addEventListener('pointerdown', (event) => {
+    event.stopPropagation();
+  });
+
+  highscoresReturn.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setScreen('menu');
+  });
+
+  creditsReturn.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setScreen('menu');
+  });
+
+  gameoverReturn.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setScreen('menu');
+  });
+
   function restartIntroSequence() {
+    clearTouchState();
     state.board = createBoard();
     state.score = 0;
     state.lines = 0;
@@ -1201,6 +1552,7 @@
     state.enteringName = false;
     state.playerName = '';
     state.nameIndex = 0;
+    state.pendingClear = null;
     gameoverHelp.textContent = 'Enter confirms the score. Up / Down choose a character, Space appends it, Backspace deletes it.';
     startIntro();
   }
@@ -1227,7 +1579,7 @@
   }
 
   function canHandleGameKeys() {
-    return state.screen === 'game' && !state.gameOver;
+    return state.screen === 'game' && !state.gameOver && !state.pendingClear;
   }
 
   function frame(now) {
@@ -1244,13 +1596,19 @@
       }
     } else if (state.screen === 'game') {
       updateViewControls(dt);
-      state.fallAccumulator += dt;
-      const interval = state.downHeld ? Math.max(0.03, dropInterval() * 0.18) : dropInterval();
-      while (state.fallAccumulator >= interval) {
-        state.fallAccumulator -= interval;
-        if (!movePiece(0, -1)) {
-          lockPiece();
-          break;
+      if (state.pendingClear) {
+        if (now - state.pendingClear.startedAt >= state.pendingClear.duration * 1000) {
+          finalizePendingClear();
+        }
+      } else {
+        state.fallAccumulator += dt;
+        const interval = state.downHeld ? Math.max(0.03, dropInterval() * 0.18) : dropInterval();
+        while (state.fallAccumulator >= interval) {
+          state.fallAccumulator -= interval;
+          if (!movePiece(0, -1)) {
+            lockPiece();
+            break;
+          }
         }
       }
       updateHud();
@@ -1332,12 +1690,22 @@
         if (color === -1) {
           continue;
         }
-        drawBlock3D(x, y, color, scene, 1.0);
+        if (state.pendingClear && state.pendingClear.rows.includes(y)) {
+          const elapsed = now - state.pendingClear.startedAt;
+          const flashVisible = Math.floor(elapsed / 120) % 2 === 0;
+          if (flashVisible) {
+            drawBlock3D(x, y, color, scene, 1.0, scene.boardScale);
+          }
+        } else {
+          drawBlock3D(x, y, color, scene, 1.0, scene.boardScale);
+        }
       }
     }
 
-    for (const block of state.active.blocks) {
-      drawBlock3D(state.active.x + block.x, state.active.y + block.y, state.active.color, scene, 1.0);
+    if (!state.pendingClear) {
+      for (const block of state.active.blocks) {
+        drawBlock3D(state.active.x + block.x, state.active.y + block.y, state.active.color, scene, 1.0, scene.boardScale);
+      }
     }
 
     drawFrame3D(scene);
@@ -1346,16 +1714,20 @@
 
   function createSceneMatrices() {
     const aspect = canvas.height > 0 ? canvas.width / canvas.height : 1;
+    const portrait = canvas.height > canvas.width;
+    const boardScale = portrait ? 0.074 : 0.085;
+    const cameraDistance = state.cameraDistance + (portrait ? 0.45 : 0);
     const proj = mat4Perspective(degToRad(46), aspect, 0.1, 100);
-    let view = mat4LookAt([0, 0.2, state.cameraDistance], [0, 0.1, 0], [0, 1, 0]);
+    let view = mat4LookAt([0, 0.2, cameraDistance], [0, 0.1, 0], [0, 1, 0]);
     view = mat4Multiply(view, mat4RotationX(degToRad(state.gridPitch)));
     view = mat4Multiply(view, mat4RotationY(degToRad(state.gridYaw)));
     view = mat4Multiply(view, mat4RotationZ(degToRad(state.gridRoll)));
-    return { view, proj };
+    return { view, proj, boardScale };
   }
 
-  function drawBlock3D(x, y, color, scene, alpha, scale = 0.085) {
-    const texture = state.textures[blockTextureFiles[color]];
+  function drawBlock3D(x, y, color, scene, alpha, scale = 0.085, textureKey = null) {
+    const key = textureKey || blockTextureFiles[color];
+    const texture = state.textures[key];
     if (!texture) {
       return;
     }
@@ -1364,18 +1736,20 @@
   }
 
   function drawFrame3D(scene) {
+    const frameScale = scene.boardScale * 0.82;
     for (let y = 0; y < boardHeight; ++y) {
-      drawBlock3D(-1, y, 7, scene, 0.9, 0.07);
-      drawBlock3D(boardWidth, y, 7, scene, 0.9, 0.07);
+      drawBlock3D(-1, y, 7, scene, 0.9, frameScale);
+      drawBlock3D(boardWidth, y, 7, scene, 0.9, frameScale);
     }
     for (let x = -1; x <= boardWidth; ++x) {
-      drawBlock3D(x, -1, 7, scene, 0.9, 0.07);
+      drawBlock3D(x, -1, 7, scene, 0.9, frameScale);
     }
   }
 
   function blockMatrix(x, y, scale) {
-    const worldX = (x - (boardWidth - 1) * 0.5) * 0.085;
-    const worldY = (y - (boardHeight - 1) * 0.5) * 0.085;
+    const gridSpacing = 0.085;
+    const worldX = (x - (boardWidth - 1) * 0.5) * gridSpacing;
+    const worldY = (y - (boardHeight - 1) * 0.5) * gridSpacing;
     return mat4Multiply(mat4Translation(worldX, worldY, 0), mat4Scale(scale, scale, scale));
   }
 
@@ -1708,19 +2082,17 @@
     }
   }
 
-  function handlePointerDown() {
+  function handlePointerDown(event) {
     if (!state.musicStarted) {
       startMusic();
     }
+    const target = event && event.target instanceof Element ? event.target : null;
+    if (target && target.closest('.name-entry-form')) {
+      return;
+    }
     if (state.screen === 'intro') {
       setScreen('menu');
-      return;
-    }
-    if (state.screen === 'menu') {
-      handleMenuConfirm();
-      return;
-    }
-    if (state.screen === 'highscores' || state.screen === 'credits' || state.screen === 'gameover') {
+    } else if (shouldAutoReturnOnTap() && (state.screen === 'highscores' || state.screen === 'credits' || state.screen === 'gameover')) {
       setScreen('menu');
     }
   }
@@ -1734,9 +2106,231 @@
     }
   }
 
+  function clearTouchState() {
+    state.touch.pointers.clear();
+    state.touch.drag = null;
+    state.touch.rotate = null;
+    state.touch.lastTap = null;
+  }
+
+  function touchDragThreshold() {
+    return Math.max(16, Math.min(window.innerWidth, window.innerHeight) * 0.03);
+  }
+
+  function touchRotateSensitivity() {
+    return {
+      yaw: 0.55,
+      pitch: 0.45,
+    };
+  }
+
+  function getTouchPointers() {
+    return [...state.touch.pointers.values()].sort((a, b) => a.id - b.id);
+  }
+
+  function updateTouchGesture() {
+    if (state.screen !== 'game' || state.gameOver || state.pendingClear) {
+      clearTouchState();
+      return;
+    }
+
+    const pointers = getTouchPointers();
+    if (pointers.length >= 2) {
+      const [first, second] = pointers;
+      const rotation = state.touch.rotate;
+      const needsReset =
+        !rotation ||
+        rotation.ids[0] !== first.id ||
+        rotation.ids[1] !== second.id;
+      if (needsReset) {
+        const startDx = second.x - first.x;
+        const startDy = second.y - first.y;
+        state.touch.rotate = {
+          ids: [first.id, second.id],
+          startCentroidX: (first.x + second.x) / 2,
+          startCentroidY: (first.y + second.y) / 2,
+          startDistance: Math.hypot(startDx, startDy) || 1,
+          startYaw: state.gridYaw,
+          startPitch: state.gridPitch,
+          startCameraDistance: state.cameraDistance,
+        };
+      }
+      state.touch.drag = null;
+      return;
+    }
+
+    state.touch.rotate = null;
+    if (pointers.length === 1) {
+      const pointer = pointers[0];
+      if (!state.touch.drag || state.touch.drag.id !== pointer.id) {
+        state.touch.drag = {
+          id: pointer.id,
+          startX: pointer.x,
+          startY: pointer.y,
+          startTime: performance.now(),
+          appliedX: 0,
+          appliedY: 0,
+          blockedXDirection: 0,
+          blockedYDirection: 0,
+          moved: false,
+        };
+      }
+    } else {
+      state.touch.drag = null;
+    }
+  }
+
+  function applyTouchDrag(pointer) {
+    if (!state.touch.drag || state.touch.drag.id !== pointer.id || state.pendingClear || state.gameOver) {
+      return;
+    }
+    const drag = state.touch.drag;
+    const threshold = touchDragThreshold();
+    const dx = pointer.x - drag.startX;
+    const dy = pointer.y - drag.startY;
+    const desiredStepsX = Math.trunc(dx / threshold);
+    const desiredStepsY = Math.trunc(dy / threshold);
+    let moved = false;
+
+    if (desiredStepsX === 0 || Math.sign(desiredStepsX) !== drag.blockedXDirection) {
+      drag.blockedXDirection = 0;
+    }
+    while (drag.appliedX !== desiredStepsX) {
+      const stepX = desiredStepsX > drag.appliedX ? 1 : -1;
+      if (drag.blockedXDirection === stepX) {
+        break;
+      }
+      if (!movePiece(stepX, 0)) {
+        drag.blockedXDirection = stepX;
+        break;
+      }
+      drag.appliedX += stepX;
+      drag.blockedXDirection = 0;
+      moved = true;
+    }
+    if (desiredStepsY === 0 || Math.sign(desiredStepsY) !== drag.blockedYDirection) {
+      drag.blockedYDirection = 0;
+    }
+    while (drag.appliedY !== desiredStepsY) {
+      const stepY = desiredStepsY > drag.appliedY ? 1 : -1;
+      if (drag.blockedYDirection === stepY) {
+        break;
+      }
+      if (!movePiece(0, stepY > 0 ? -1 : 1)) {
+        drag.blockedYDirection = stepY;
+        if (stepY > 0) {
+          lockPiece();
+        }
+        break;
+      }
+      drag.appliedY += stepY;
+      drag.blockedYDirection = 0;
+      moved = true;
+    }
+
+    if (moved || Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+      drag.moved = true;
+    }
+  }
+
+  function applyTouchRotate() {
+    const rotation = state.touch.rotate;
+    if (!rotation) {
+      return;
+    }
+    const first = state.touch.pointers.get(rotation.ids[0]);
+    const second = state.touch.pointers.get(rotation.ids[1]);
+    if (!first || !second) {
+      return;
+    }
+    const centroidX = (first.x + second.x) / 2;
+    const centroidY = (first.y + second.y) / 2;
+    const distance = Math.hypot(second.x - first.x, second.y - first.y) || 1;
+    const sensitivity = touchRotateSensitivity();
+    state.gridYaw = rotation.startYaw + (centroidX - rotation.startCentroidX) * sensitivity.yaw;
+    state.gridPitch = clamp(rotation.startPitch - (centroidY - rotation.startCentroidY) * sensitivity.pitch, -70, 70);
+    state.cameraDistance = clamp(rotation.startCameraDistance * (rotation.startDistance / distance), 1.65, 9.0);
+    state.touch.drag = null;
+  }
+
+  function finalizeTouchPointer(event) {
+    const pointer = state.touch.pointers.get(event.pointerId);
+    state.touch.pointers.delete(event.pointerId);
+    if (state.touch.rotate) {
+      state.touch.rotate = null;
+    }
+    if (pointer && state.touch.drag && state.touch.drag.id === pointer.id) {
+      const drag = state.touch.drag;
+      const elapsed = performance.now() - drag.startTime;
+      const totalDx = pointer.x - drag.startX;
+      const totalDy = pointer.y - drag.startY;
+      const movedDistance = Math.hypot(totalDx, totalDy);
+      state.touch.drag = null;
+      if (elapsed < 260 && movedDistance < touchDragThreshold() * 0.55) {
+        const now = performance.now();
+        const previousTap = state.touch.lastTap;
+        const isDoubleTap =
+          previousTap &&
+          (now - previousTap.time) < 320 &&
+          Math.hypot(pointer.x - previousTap.x, pointer.y - previousTap.y) < touchDragThreshold() * 0.8;
+        rotatePiece();
+        if (isDoubleTap) {
+          rotatePiece();
+          state.touch.lastTap = null;
+        } else {
+          state.touch.lastTap = { x: pointer.x, y: pointer.y, time: now };
+        }
+      }
+    }
+    updateTouchGesture();
+  }
+
+  function handleCanvasPointerDown(event) {
+    if (state.screen !== 'game' || state.gameOver || state.pendingClear) {
+      return;
+    }
+    canvas.setPointerCapture(event.pointerId);
+    state.touch.pointers.set(event.pointerId, {
+      id: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+    });
+    updateTouchGesture();
+    event.preventDefault();
+  }
+
+  function handleCanvasPointerMove(event) {
+    const pointer = state.touch.pointers.get(event.pointerId);
+    if (!pointer) {
+      return;
+    }
+    pointer.x = event.clientX;
+    pointer.y = event.clientY;
+    if (state.touch.rotate) {
+      applyTouchRotate();
+    } else {
+      applyTouchDrag(pointer);
+    }
+    event.preventDefault();
+  }
+
+  function handleCanvasPointerUp(event) {
+    finalizeTouchPointer(event);
+    event.preventDefault();
+  }
+
+  function handleCanvasPointerCancel(event) {
+    finalizeTouchPointer(event);
+    event.preventDefault();
+  }
+
   window.addEventListener('keydown', handleKeyDown, { passive: false });
   window.addEventListener('keyup', handleKeyUp);
   window.addEventListener('pointerdown', handlePointerDown);
+  canvas.addEventListener('pointerdown', handleCanvasPointerDown, { passive: false });
+  canvas.addEventListener('pointermove', handleCanvasPointerMove, { passive: false });
+  canvas.addEventListener('pointerup', handleCanvasPointerUp, { passive: false });
+  canvas.addEventListener('pointercancel', handleCanvasPointerCancel, { passive: false });
   window.addEventListener('resize', resizeCanvas);
   window.addEventListener('blur', () => {
     state.keyState.clear();
@@ -1745,6 +2339,7 @@
     state.rightHeld = false;
     state.upHeld = false;
     state.zHeld = false;
+    clearTouchState();
   });
 
   drawGameHint();
