@@ -2189,7 +2189,7 @@
     const dx = pointer.x - drag.startX;
     const dy = pointer.y - drag.startY;
     const desiredStepsX = Math.trunc(dx / threshold);
-    const desiredStepsY = Math.trunc(dy / threshold);
+    const desiredStepsY = Math.max(0, Math.trunc(dy / threshold));
     let moved = false;
 
     if (desiredStepsX === 0 || Math.sign(desiredStepsX) !== drag.blockedXDirection) {
@@ -2208,22 +2208,19 @@
       drag.blockedXDirection = 0;
       moved = true;
     }
-    if (desiredStepsY === 0 || Math.sign(desiredStepsY) !== drag.blockedYDirection) {
+    if (desiredStepsY === 0) {
       drag.blockedYDirection = 0;
     }
-    while (drag.appliedY !== desiredStepsY) {
-      const stepY = desiredStepsY > drag.appliedY ? 1 : -1;
-      if (drag.blockedYDirection === stepY) {
+    while (drag.appliedY < desiredStepsY) {
+      if (drag.blockedYDirection === 1) {
         break;
       }
-      if (!movePiece(0, stepY > 0 ? -1 : 1)) {
-        drag.blockedYDirection = stepY;
-        if (stepY > 0) {
-          lockPiece();
-        }
+      if (!movePiece(0, -1)) {
+        drag.blockedYDirection = 1;
+        lockPiece();
         break;
       }
-      drag.appliedY += stepY;
+      drag.appliedY += 1;
       drag.blockedYDirection = 0;
       moved = true;
     }
