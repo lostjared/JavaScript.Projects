@@ -1,6 +1,7 @@
 # Dark Side Demo
 
-<img width="720" height="396" alt="darkside" src="https://github.com/user-attachments/assets/0c76993a-bf0c-4050-9264-3388cedf3649" />
+<img width="700" height="385" alt="image" src="https://github.com/user-attachments/assets/7fdfda70-f4f7-40dc-ac9c-a16be4b415de" />
+
 
 
 
