@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Dark Side Demo</title>
+<title>MXVK Dark Crystal Pyramid</title>
 <style>
     @font-face {
         font-family: "DarkFont";
@@ -76,7 +76,7 @@
 <body>
 <canvas id="gl"></canvas>
 <div id="title">the Lunatic iS in my heaD</div>
-<div id="hint">space: spin toggle | wheel: zoom</div>
+<div id="hint">drag: rotate | pinch: zoom</div>
 <script>
 (() => {
     "use strict";
@@ -175,6 +175,16 @@
     const cameraDistanceMax = 10.0;
     let cameraDistance = 5.35;
     let autoSpinEnabled = true;
+    let mouseDragging = false;
+    let lastMouseX = 0;
+    let lastMouseY = 0;
+    let yawDegrees = 0.0;
+    let pitchDegrees = 0.0;
+    const mouseSensitivity = 0.35;
+    const activeTouches = new Map();
+    let touchDragPointerId = null;
+    let pinchStartDistance = 0.0;
+    let pinchStartCameraDistance = cameraDistance;
     let autoSpinRadians = 0.0;
     let elapsedSeconds = 0.0;
     let lastFrameTime = performance.now() * 0.001;
@@ -362,25 +372,79 @@
 
     const beamVertexSource = `#version 300 es
     precision highp float;
-    const vec2 positions[3] = vec2[3](
-        vec2(-1.0, -1.0),
-        vec2( 3.0, -1.0),
-        vec2(-1.0,  3.0)
-    );
-    out vec2 v_uv;
+    layout(location = 0) in vec3 a_position;
+
+    uniform mat4 u_view;
+    uniform mat4 u_proj;
+    uniform vec4 u_fx;
+
+    out vec2 v_param;
+    out float v_kind;
+    out float v_channel;
+
+    vec3 rotateY(vec3 v, float angle) {
+        float c = cos(angle);
+        float s = sin(angle);
+        return vec3(v.x * c + v.z * s, v.y, -v.x * s + v.z * c);
+    }
+
+    vec3 prismPoint(vec3 p, float angle) {
+        const float MODEL_SCALE = 1.84375;
+        return rotateY((p + vec3(0.0, -0.65, 0.0)) * MODEL_SCALE, angle);
+    }
+
+    vec3 ribbonSide(vec3 dir) {
+        vec3 side = vec3(0.0, 1.0, 0.0) - dir * dot(vec3(0.0, 1.0, 0.0), dir);
+        if (dot(side, side) < 0.0001) {
+            side = vec3(1.0, 0.0, 0.0) - dir * dot(vec3(1.0, 0.0, 0.0), dir);
+        }
+        return normalize(side);
+    }
+
+    vec3 ribbonPoint(vec3 a, vec3 b, float along, float side, float width, float growth) {
+        vec3 dir = normalize(b - a);
+        float w = width + along * growth;
+        return mix(a, b, along) + ribbonSide(dir) * side * w;
+    }
+
     void main() {
-        vec2 p = positions[gl_VertexID];
-        v_uv = p * 0.5 + 0.5;
-        gl_Position = vec4(p, 0.0, 1.0);
+        float spin = u_fx.y;
+        float along = a_position.x;
+        float side = a_position.y;
+        float kind = a_position.z;
+
+        vec3 entry = prismPoint(vec3(-0.34, 0.72, -0.18), spin);
+        vec3 exit = prismPoint(vec3(0.34, 0.66, -0.10), spin);
+        vec3 incomingDir = normalize(rotateY(vec3(1.0, 0.045, -0.035), spin));
+        vec3 incomingStart = entry - incomingDir * 48.0;
+
+        vec3 position = vec3(0.0);
+        float channel = -1.0;
+        if (kind < 0.5) {
+            position = ribbonPoint(incomingStart, entry + incomingDir * 0.05, along, side, 0.060, 0.0);
+        } else if (kind < 1.5) {
+            position = ribbonPoint(entry, exit, along, side, 0.001, 0.0);
+        } else {
+            channel = clamp(kind - 2.0, 0.0, 5.0);
+            float t = channel / 5.0;
+            vec3 baseOut = normalize(rotateY(vec3(1.0, -0.035, 0.02), spin));
+            vec3 outDir = normalize(baseOut + vec3(0.0, mix(0.022, -0.022, t), mix(-0.002, 0.002, t)));
+            position = ribbonPoint(exit + outDir * 0.006, exit + outDir * 48.0, along, side, 0.230, 0.420);
+        }
+
+        v_param = vec2(along, side);
+        v_kind = kind;
+        v_channel = channel;
+        gl_Position = u_proj * u_view * vec4(position, 1.0);
     }`;
 
     const beamFragmentSource = `#version 300 es
     precision highp float;
-    in vec2 v_uv;
-    uniform vec2 u_resolution;
-    uniform float u_rotation;
-    uniform float u_time;
-    uniform float u_intensity;
+    in vec2 v_param;
+    in float v_kind;
+    in float v_channel;
+
+    uniform vec4 u_fx;
     out vec4 out_color;
 
     vec3 spectralColor(float t) {
@@ -399,54 +463,36 @@
         return violet;
     }
 
+    float sparkle(float x, float y, float time) {
+        float waveA = sin(x * 42.0 - time * 6.0 + y * 17.0);
+        float waveB = sin(x * 87.0 + time * 9.0 - y * 31.0);
+        return smoothstep(0.82, 1.0, waveA * 0.5 + 0.5) * smoothstep(0.76, 1.0, waveB * 0.5 + 0.5);
+    }
+
     void main() {
-        vec2 aspect = vec2(max(u_resolution.x / max(u_resolution.y, 1.0), 1.0), 1.0);
-        vec2 p = (v_uv - vec2(0.5)) * aspect;
+        float edge = smoothstep(1.0, 0.0, abs(v_param.y));
+        float lengthFade = smoothstep(0.0, 0.025, v_param.x);
+        float farFade = 1.0 - smoothstep(0.78, 1.0, v_param.x);
 
-        float prismRotation = u_rotation;
-        float intensity = max(u_intensity, 0.0);
+        vec3 color = vec3(1.0);
+        float alpha = 0.0;
+        if (v_kind < 0.5) {
+            color = mix(vec3(0.56, 0.62, 0.68), vec3(1.0, 0.98, 0.86), smoothstep(0.45, 0.0, abs(v_param.y)));
+            alpha = edge * lengthFade * 0.54;
+        } else if (v_kind < 1.5) {
+            color = vec3(1.0, 0.94, 0.72);
+            alpha = 0.0;
+        } else {
+            float channel = clamp(v_channel / 5.0, 0.0, 1.0);
+            float core = smoothstep(0.72, 0.0, abs(v_param.y));
+            float hotStart = (1.0 - smoothstep(0.0, 0.22, v_param.x)) * core;
+            float glint = sparkle(v_param.x, channel, u_fx.x) * (0.25 + 0.75 * core);
+            vec3 rainbow = spectralColor(channel) * (2.23 + glint * 0.55);
+            color = mix(rainbow, vec3(1.0, 0.98, 0.78) * 2.15, hotStart * 0.58);
+            alpha = edge * lengthFade * farFade * (0.86 + hotStart * 0.14 + glint * 0.08);
+        }
 
-        vec2 origin = vec2(0.01, -0.005);
-        vec2 incomingDir = normalize(vec2(1.0, 0.19));
-        vec2 outgoingDir = normalize(vec2(1.0, -0.19));
-        vec2 incomingNormal = vec2(-incomingDir.y, incomingDir.x);
-        vec2 outgoingNormal = vec2(-outgoingDir.y, outgoingDir.x);
-        float faceOffset = 0.052 + cos(prismRotation) * 0.010;
-        vec2 incomingRotationOffset = incomingNormal * sin(prismRotation) * 0.014;
-        vec2 outgoingRotationOffset = outgoingNormal * sin(prismRotation) * 0.014;
-        vec2 incomingOrigin = origin - incomingDir * faceOffset + incomingRotationOffset;
-        vec2 outgoingOrigin = origin + outgoingDir * faceOffset - outgoingRotationOffset;
-        vec2 outgoingQ = p - outgoingOrigin;
-        vec2 incomingQ = p - incomingOrigin;
-
-        float outgoingAlong = dot(outgoingQ, outgoingDir);
-        float outgoingAcross = dot(outgoingQ, outgoingNormal);
-        float outgoingLength = smoothstep(0.0, 0.12, outgoingAlong) * (1.0 - smoothstep(1.48, 1.92, outgoingAlong));
-        float outgoingSpread = 0.030 + max(outgoingAlong, 0.0) * 0.13;
-        float outgoingBand = outgoingAcross / max(outgoingSpread, 0.001);
-        float outgoingMask = smoothstep(1.0, 0.82, abs(outgoingBand)) * outgoingLength;
-
-        float spectrum = clamp((outgoingBand * 0.5) + 0.5, 0.0, 1.0);
-        vec3 color = spectralColor(spectrum);
-
-        float separation = smoothstep(0.020, 0.055, abs(fract(spectrum * 6.0) - 0.5));
-        float outgoingCore = smoothstep(0.18, 0.0, abs(outgoingBand)) * outgoingLength;
-        vec3 outgoingColor = color * outgoingMask * (1.85 + separation * 0.20) + vec3(1.0) * outgoingCore * 0.08;
-
-        float incomingAlong = dot(incomingQ, incomingDir);
-        float incomingAcross = dot(incomingQ, incomingNormal);
-        float incomingLength = smoothstep(-1.92, -1.48, incomingAlong) * (1.0 - smoothstep(-0.12, 0.0, incomingAlong));
-        float incomingSpread = 0.018 - min(incomingAlong, 0.0) * 0.003;
-        float incomingBand = incomingAcross / max(incomingSpread, 0.001);
-        float incomingMask = smoothstep(1.12, 0.70, abs(incomingBand)) * incomingLength;
-        float incomingCore = smoothstep(0.34, 0.0, abs(incomingBand)) * incomingLength;
-        float prismHotspot = smoothstep(0.095, 0.0, length(incomingQ)) * 0.34;
-
-        vec3 incomingColor = vec3(0.86, 0.92, 1.0) * incomingMask * 0.64 + vec3(1.0, 0.98, 0.88) * (incomingCore * 0.42 + prismHotspot);
-        vec3 beamColor = incomingColor + outgoingColor;
-
-        float alpha = clamp((incomingMask * 0.34 + incomingCore * 0.12 + prismHotspot * 0.32 + outgoingMask * 0.94 + outgoingCore * 0.08) * intensity, 0.0, 0.96);
-        out_color = vec4(beamColor * intensity, alpha);
+        out_color = vec4(color, alpha * clamp(u_fx.w, 0.0, 1.0));
     }`;
 
     const modelVertexSource = `#version 300 es
@@ -483,13 +529,8 @@
     in vec3 v_view_pos;
     in vec3 v_local_pos;
 
-    uniform sampler2D u_tex;
     uniform vec4 u_fx;
     out vec4 out_color;
-
-    vec2 mirrorWrap(vec2 uv) {
-        return 1.0 - abs(1.0 - 2.0 * fract(uv * 0.5));
-    }
 
     float stripe(vec3 p, float time) {
         float band = sin((p.y * 9.0) + (p.x - p.z) * 3.0 + time * 1.7);
@@ -541,12 +582,6 @@
         float time = u_fx.x;
         float alphaScale = clamp(u_fx.w, 0.0, 1.0);
 
-        vec2 uv = mirrorWrap(v_uv + vec2(sin(time * 0.18), cos(time * 0.12)) * 0.025);
-        vec4 texColor = texture(u_tex, uv);
-        if (texColor.a <= 0.0001) {
-            texColor = vec4(1.0);
-        }
-
         vec3 N = normalize(v_normal);
         vec3 V = normalize(-v_view_pos);
         vec3 lightPos = vec3(0.0, 3.8, 0.7);
@@ -559,6 +594,8 @@
         float broadSpecular = pow(max(dot(R, V), 0.0), 20.0) * 0.18;
         float rim = pow(1.0 - max(dot(N, V), 0.0), 1.55);
         float internal = stripe(v_local_pos, time);
+        float facetPulse = 0.5 + 0.5 * sin(dot(v_local_pos, vec3(6.2, 9.7, -4.3)) + time * 1.25);
+        float depthPulse = 0.5 + 0.5 * sin(v_local_pos.y * 8.0 - v_local_pos.x * 5.0 + v_local_pos.z * 3.5 - time * 0.9);
 
         float beamCenter = v_local_pos.y - (0.30 - v_local_pos.x * 0.44);
         float beamMask = 1.0 - smoothstep(0.035, 0.23, abs(beamCenter));
@@ -567,93 +604,62 @@
         vec3 rainbow = spectralColor(spectrumPosition);
         float rainbowStrength = beamMask * prismBody * (0.55 + diffuse * 0.35);
 
-        vec3 glass = mix(vec3(1.0), texColor.rgb, 0.86);
-        vec3 glow = vec3(1.0) * (0.015 + internal * 0.025);
+        vec3 deepTint = vec3(0.020, 0.070, 0.180);
+        vec3 midTint = vec3(0.080, 0.430, 0.760);
+        vec3 brightTint = vec3(0.860, 0.970, 1.000);
+        vec3 bodyTint = mix(deepTint, midTint, 0.30 + 0.45 * facetPulse);
+        bodyTint = mix(bodyTint, brightTint, 0.10 + 0.18 * depthPulse + rim * 0.18);
+
+        vec3 glow = vec3(1.0) * (0.012 + internal * 0.028);
         vec3 edgeGlow = vec3(1.0) * rim * 0.28;
         float hardEdge = prismEdgeMask(v_local_pos);
         vec3 prismEdgeGlow = vec3(1.0) * hardEdge * (0.62 + specular * 0.42);
         vec3 highlight = vec3(1.0) * (specular * 1.45 + broadSpecular * 0.85);
-        vec3 phongGlass = glass * (ambient * 0.72 + diffuse * 0.34);
+        vec3 phongGlass = bodyTint * (ambient * 0.78 + diffuse * 0.36);
         vec3 litColor = phongGlass + highlight + edgeGlow + prismEdgeGlow + glow + rainbow * rainbowStrength * 0.58;
 
         float fresnelAlpha = 0.045 + rim * 0.18;
         float surfaceAlpha = clamp((fresnelAlpha + internal * 0.010 + rainbowStrength * 0.030 + hardEdge * 0.12) * alphaScale, 0.020, 0.28);
-        out_color = vec4(litColor, surfaceAlpha * texColor.a);
+        out_color = vec4(litColor, surfaceAlpha);
     }`;
 
     let beamProgram;
     let modelProgram;
     let beamUniforms;
     let modelUniforms;
+    let beamVao;
+    let beamVbo;
+    let beamVertexCount = 0;
     let pyramidVao;
     let pyramidVbo;
-    let crystalTexture;
-    let textureReady = false;
 
-    function createPlaceholderTexture() {
-        const texture = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        const pixel = new Uint8Array([255, 255, 255, 255]);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-        gl.bindTexture(gl.TEXTURE_2D, null);
-        return texture;
-    }
-
-    async function loadTexture(url) {
-        const texture = createPlaceholderTexture();
-        try {
-            const image = new Image();
-            image.decoding = "async";
-            image.src = url;
-            await image.decode();
-            gl.bindTexture(gl.TEXTURE_2D, texture);
-            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-            gl.generateMipmap(gl.TEXTURE_2D);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-            gl.bindTexture(gl.TEXTURE_2D, null);
-            textureReady = true;
-        } catch (error) {
-            const fallback = document.createElement("canvas");
-            fallback.width = 256;
-            fallback.height = 256;
-            const ctx = fallback.getContext("2d");
-            const gradient = ctx.createLinearGradient(0, 0, 256, 256);
-            gradient.addColorStop(0.0, "#ececec");
-            gradient.addColorStop(0.35, "#ffffff");
-            gradient.addColorStop(0.7, "#cfd7e8");
-            gradient.addColorStop(1.0, "#ffffff");
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, 256, 256);
-            ctx.strokeStyle = "rgba(120,150,255,0.22)";
-            for (let i = 0; i < 18; ++i) {
-                ctx.beginPath();
-                ctx.moveTo(0, i * 16);
-                ctx.lineTo(256, 256 - i * 10);
-                ctx.stroke();
-            }
-            gl.bindTexture(gl.TEXTURE_2D, texture);
-            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, fallback);
-            gl.generateMipmap(gl.TEXTURE_2D);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-            gl.bindTexture(gl.TEXTURE_2D, null);
-            textureReady = false;
+    function createBeamVertexArray() {
+        const data = [];
+        for (let kind = 0; kind < 8; ++kind) {
+            data.push(
+                0, -1, kind,
+                1, -1, kind,
+                1,  1, kind,
+                0, -1, kind,
+                1,  1, kind,
+                0,  1, kind
+            );
         }
-        return texture;
+        beamVertexCount = data.length / 3;
+        return new Float32Array(data);
     }
 
     function initGeometry() {
+        const beamVertices = createBeamVertexArray();
+        beamVao = gl.createVertexArray();
+        beamVbo = gl.createBuffer();
+        gl.bindVertexArray(beamVao);
+        gl.bindBuffer(gl.ARRAY_BUFFER, beamVbo);
+        gl.bufferData(gl.ARRAY_BUFFER, beamVertices, gl.STATIC_DRAW);
+        gl.enableVertexAttribArray(0);
+        gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 3 * 4, 0);
+        gl.bindVertexArray(null);
+
         pyramidVao = gl.createVertexArray();
         pyramidVbo = gl.createBuffer();
         gl.bindVertexArray(pyramidVao);
@@ -676,17 +682,15 @@
         beamProgram = createProgram(beamVertexSource, beamFragmentSource);
         modelProgram = createProgram(modelVertexSource, modelFragmentSource);
         beamUniforms = {
-            resolution: gl.getUniformLocation(beamProgram, "u_resolution"),
-            rotation: gl.getUniformLocation(beamProgram, "u_rotation"),
-            time: gl.getUniformLocation(beamProgram, "u_time"),
-            intensity: gl.getUniformLocation(beamProgram, "u_intensity")
+            view: gl.getUniformLocation(beamProgram, "u_view"),
+            proj: gl.getUniformLocation(beamProgram, "u_proj"),
+            fx: gl.getUniformLocation(beamProgram, "u_fx")
         };
         modelUniforms = {
             model: gl.getUniformLocation(modelProgram, "u_model"),
             view: gl.getUniformLocation(modelProgram, "u_view"),
             proj: gl.getUniformLocation(modelProgram, "u_proj"),
-            fx: gl.getUniformLocation(modelProgram, "u_fx"),
-            tex: gl.getUniformLocation(modelProgram, "u_tex")
+            fx: gl.getUniformLocation(modelProgram, "u_fx")
         };
     }
 
@@ -709,20 +713,46 @@
         return m;
     }
 
-    function drawBeam(spinRadians) {
+    function touchDistance() {
+        const touches = Array.from(activeTouches.values());
+        if (touches.length < 2) {
+            return 0.0;
+        }
+        const dx = touches[1].x - touches[0].x;
+        const dy = touches[1].y - touches[0].y;
+        return Math.hypot(dx, dy);
+    }
+
+    function cameraMatrices() {
+        const aspect = canvas.height > 0 ? canvas.width / canvas.height : 1.0;
+        const yawRadians = degToRad(yawDegrees);
+        const pitchRadians = degToRad(pitchDegrees);
+        const cameraPos = [
+            cameraDistance * Math.cos(pitchRadians) * Math.sin(yawRadians),
+            0.35 + cameraDistance * Math.sin(pitchRadians),
+            cameraDistance * Math.cos(pitchRadians) * Math.cos(yawRadians)
+        ];
+        return {
+            view: lookAt(cameraPos, [0.0, 0.35, 0.0], [0.0, 1.0, 0.0]),
+            proj: perspective(degToRad(48.0), aspect, 0.1, 100.0)
+        };
+    }
+
+    function drawBeam(spinRadians, view, proj) {
         gl.useProgram(beamProgram);
         gl.disable(gl.DEPTH_TEST);
         gl.depthMask(false);
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-        gl.uniform2f(beamUniforms.resolution, canvas.width, canvas.height);
-        gl.uniform1f(beamUniforms.rotation, spinRadians);
-        gl.uniform1f(beamUniforms.time, elapsedSeconds);
-        gl.uniform1f(beamUniforms.intensity, 1.0);
-        gl.drawArrays(gl.TRIANGLES, 0, 3);
+        gl.uniformMatrix4fv(beamUniforms.view, false, view);
+        gl.uniformMatrix4fv(beamUniforms.proj, false, proj);
+        gl.uniform4f(beamUniforms.fx, elapsedSeconds, spinRadians, 1.0, 1.0);
+        gl.bindVertexArray(beamVao);
+        gl.drawArrays(gl.TRIANGLES, 0, beamVertexCount);
+        gl.bindVertexArray(null);
     }
 
-    function drawModel(spinRadians) {
+    function drawModel(spinRadians, view, proj) {
         gl.useProgram(modelProgram);
         gl.enable(gl.DEPTH_TEST);
         gl.depthFunc(gl.LEQUAL);
@@ -730,20 +760,12 @@
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-        const aspect = canvas.height > 0 ? canvas.width / canvas.height : 1.0;
-        const cameraPos = [0.0, 0.35, cameraDistance];
-        const view = lookAt(cameraPos, [0.0, 0.35, 0.0], [0.0, 1.0, 0.0]);
-        const proj = perspective(degToRad(48.0), aspect, 0.1, 100.0);
         const model = modelMatrixForSpin(spinRadians);
 
         gl.uniformMatrix4fv(modelUniforms.model, false, model);
         gl.uniformMatrix4fv(modelUniforms.view, false, view);
         gl.uniformMatrix4fv(modelUniforms.proj, false, proj);
         gl.uniform4f(modelUniforms.fx, elapsedSeconds, 0.0, 0.0, 0.42);
-
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, crystalTexture);
-        gl.uniform1i(modelUniforms.tex, 0);
 
         gl.bindVertexArray(pyramidVao);
         gl.drawArrays(gl.TRIANGLES, 0, vertexArray.length / 8);
@@ -762,8 +784,9 @@
         resize();
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        drawBeam(autoSpinRadians);
-        drawModel(autoSpinRadians);
+        const camera = cameraMatrices();
+        drawBeam(autoSpinRadians, camera.view, camera.proj);
+        drawModel(autoSpinRadians, camera.view, camera.proj);
 
         requestAnimationFrame(render);
     }
@@ -775,21 +798,93 @@
         cameraDistance = clamp(cameraDistance - delta * 0.35, cameraDistanceMin, cameraDistanceMax);
     }, { passive: false });
 
-    window.addEventListener("keydown", (event) => {
-        if (event.code === "Space") {
-            event.preventDefault();
-            if (!event.repeat) {
-                autoSpinEnabled = !autoSpinEnabled;
-            }
+    window.addEventListener("pointerdown", (event) => {
+        if (event.pointerType === "mouse" && event.button !== 0) {
+            return;
         }
+        if (event.pointerType === "touch") {
+            activeTouches.set(event.pointerId, { x: event.clientX, y: event.clientY });
+            if (activeTouches.size === 1) {
+                touchDragPointerId = event.pointerId;
+                lastMouseX = event.clientX;
+                lastMouseY = event.clientY;
+            } else if (activeTouches.size === 2) {
+                pinchStartDistance = touchDistance();
+                pinchStartCameraDistance = cameraDistance;
+                touchDragPointerId = null;
+            }
+        } else {
+            mouseDragging = true;
+            lastMouseX = event.clientX;
+            lastMouseY = event.clientY;
+        }
+        canvas.setPointerCapture(event.pointerId);
+    });
+
+    window.addEventListener("pointerup", (event) => {
+        if (event.pointerType === "touch") {
+            activeTouches.delete(event.pointerId);
+            if (touchDragPointerId === event.pointerId) {
+                touchDragPointerId = null;
+            }
+            if (activeTouches.size >= 2) {
+                pinchStartDistance = touchDistance();
+                pinchStartCameraDistance = cameraDistance;
+            } else if (activeTouches.size === 1) {
+                const remaining = activeTouches.entries().next().value;
+                touchDragPointerId = remaining[0];
+                lastMouseX = remaining[1].x;
+                lastMouseY = remaining[1].y;
+            }
+        } else if (event.button === 0) {
+            mouseDragging = false;
+        }
+        if (canvas.hasPointerCapture(event.pointerId)) {
+            canvas.releasePointerCapture(event.pointerId);
+        }
+    });
+
+    window.addEventListener("pointercancel", (event) => {
+        mouseDragging = false;
+        activeTouches.clear();
+        touchDragPointerId = null;
+        if (canvas.hasPointerCapture(event.pointerId)) {
+            canvas.releasePointerCapture(event.pointerId);
+        }
+    });
+
+    window.addEventListener("pointermove", (event) => {
+        if (event.pointerType === "touch") {
+            if (!activeTouches.has(event.pointerId)) {
+                return;
+            }
+            activeTouches.set(event.pointerId, { x: event.clientX, y: event.clientY });
+            if (activeTouches.size >= 2) {
+                const currentDistance = Math.max(touchDistance(), 0.001);
+                cameraDistance = clamp(
+                    pinchStartCameraDistance * pinchStartDistance / currentDistance,
+                    cameraDistanceMin,
+                    cameraDistanceMax
+                );
+                return;
+            }
+            if (touchDragPointerId !== event.pointerId) {
+                return;
+            }
+        } else if (!mouseDragging) {
+            return;
+        }
+
+        const deltaX = event.clientX - lastMouseX;
+        const deltaY = event.clientY - lastMouseY;
+        yawDegrees += deltaX * mouseSensitivity;
+        pitchDegrees = clamp(pitchDegrees + deltaY * mouseSensitivity, -55.0, 55.0);
+        lastMouseX = event.clientX;
+        lastMouseY = event.clientY;
     });
 
     initPrograms();
     initGeometry();
-    crystalTexture = createPlaceholderTexture();
-    loadTexture(new URL("data/crystal.png", document.baseURI).href).then((texture) => {
-        crystalTexture = texture;
-    });
     resize();
     requestAnimationFrame(render);
 })();
