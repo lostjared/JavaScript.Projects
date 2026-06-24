@@ -38,5 +38,8 @@ Instead of having a repo for each of these new mini-projects, I decided to put t
 - **SuperMasterKong - Madbomber Clone C++ to WASM/JavaScript**
 - **MasterKong2D - Second game I ever wrote C++ to WASM/JavaScript**
 - **MPC (MasterPiece C Edition) - Puzzle game written in C**
+- 3D Tetris JavaScript/WebGL 2
+- Dark Side Demo
+
 
 Go to the Web Apps section of http://lostsidedead.biz to try these apps out.
